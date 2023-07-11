@@ -69,7 +69,7 @@ public class Controller {
             if (cont.isKeyHeld(38) && (cont.bat.players[0].getVelocity()[1] == 0)) {
                 y -= 1;
             }
-            cont.bat.players[0].setVelocity(new Double[]{x, y});
+            cont.bat.players[0].setVel(new Double[]{x, y});
         }
 
         //TODO implement flying

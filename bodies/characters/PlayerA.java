@@ -31,8 +31,7 @@ public abstract class PlayerA extends PhysicalBodyA {
         image.y = newPos[1];
     }
 
-    @Override
-    public void setVelocity(Double[] velocity) {
+    public void setVel(Double[] velocity) {
         facingRight = velocity[0] > 0;
         setVelocity(velocity);
     }
