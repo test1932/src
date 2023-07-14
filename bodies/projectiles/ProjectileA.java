@@ -23,15 +23,14 @@ public abstract class ProjectileA extends PhysicalBodyA {
     }
 
     public abstract void destroyProjectile();
-    public abstract void updatePosition(Long newTime);
-    public abstract void updateVelocity();
+    public abstract void updateVelocity(Long newTime);
     public abstract void collisionEffect();
 
     public void reduceTime(Long timeDiff) {
         timeRemaining -= timeDiff;
     }
 
-    public boolean effectIsOver() {
+    public boolean projectileIsOver() {
         return timeRemaining <= 0;
     }
 

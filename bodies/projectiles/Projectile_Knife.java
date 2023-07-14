@@ -7,18 +7,17 @@ import bodies.characters.PlayerA;
 
 public class Projectile_Knife extends AttackProjectile{
     public Projectile_Knife(int damage, EffectI effect, PlayerA player, Integer[] pos, Double[] vel) {
-        super(damage, effect, player, pos, vel);
+        super(damage, effect, player, pos, vel); // effect often null
     }
 
+    @Override
     public void destroyProjectile() {
-
+        //Do nothing, basic knife doesn't have death effect
     }
 
-    public void updatePosition(Long newTime) {
-
-    }
-
-    public void updateVelocity() {
-
+    @Override
+    public void updateVelocity(Long newTime) {
+        reduceTime(newTime);
+        // Do nothing, basic knife continues on path
     }
 }
