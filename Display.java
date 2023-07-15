@@ -1,8 +1,8 @@
-//import javax.swing.JPanel;
+
 
 import javax.swing.JFrame;
 
-import bodies.PhysicalBodyA;
+import bodies.AbstractPhysicalBody;
 
 import java.awt.BasicStroke;
 //import java.awt.Color;
@@ -22,7 +22,6 @@ public class Display extends JFrame implements Observer {
         this.cont = c;
         addKeyListener(new BattleKeyListener(this, cont));
         setup();
-        backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
     }
 
     @Override
@@ -35,9 +34,19 @@ public class Display extends JFrame implements Observer {
         Graphics backBufferGraphics = backBuffer.getGraphics();
         Graphics2D g2D = (Graphics2D)backBufferGraphics;
         setThickness(g2D, 2.0f);
-        paintBattle(g2D);
+        paintScreen(g2D);
 
         g.drawImage(backBuffer, 0, 0, null);
+    }
+
+    public void paintScreen(Graphics2D g2D) {
+        g2D.clearRect(0,0, 1000, 700);
+        switch (cont.game.gameState) {
+            case Menu:
+                paintMenu(g2D); break;
+            case Playing:
+                paintBattle(g2D); break;
+        }
     }
 
     public void setThickness(Graphics2D g2D, float strokeWidth) {
@@ -46,17 +55,21 @@ public class Display extends JFrame implements Observer {
     }
 
     public void paintBattle(Graphics2D g2D) {
-        g2D.clearRect(0,0, 1000, 700);
         g2D.draw(this.b.bounds);
-        for (PhysicalBodyA wall : b.walls) {
+        for (AbstractPhysicalBody wall : b.walls) {
             g2D.draw(wall.hitbox);
         }
         g2D.draw(this.b.players[0].getImage());
     }
 
+    public void paintMenu(Graphics2D g2D) {
+        g2D.drawString("This is the menu", 100, 100);
+    }
+
     private void setup() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1000,600);
+        backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         setResizable(false);
         setTitle("Touhou ??.? - Second Realm of Fallen Star");
         b.addObserver(this);

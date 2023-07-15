@@ -3,7 +3,7 @@ package bodies;
 import java.awt.Shape;
 import java.awt.geom.Area;
 
-public class PhysicalBodyA {
+public class AbstractPhysicalBody {
     public Shape hitbox;
     public boolean gravityApplies = false;
     private Integer[] position;

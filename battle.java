@@ -1,3 +1,4 @@
+
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.util.ArrayList;
@@ -5,19 +6,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 import bodies.characters.HumanPlayer;
-import bodies.characters.PlayerA;
-import bodies.PhysicalBodyA;
+import bodies.characters.AbstractPlayer;
+import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
 import listeners.Observer;
 
 public class battle {
     public Rectangle bounds;
-    public PlayerA[] players = {new HumanPlayer(true), 
+    public AbstractPlayer[] players = {new HumanPlayer(true), 
                                 new HumanPlayer(false)};
     private List<Observer> observers;
-    public LinkedList<PhysicalBodyA> bodies = new LinkedList<PhysicalBodyA>();
+    public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
 
-    public PhysicalBodyA[] walls;
+    public AbstractPhysicalBody[] walls;
 
     public final int X = 100;
     public final int Y = 50;
@@ -29,17 +30,17 @@ public class battle {
         setupWalls();
         observers = new ArrayList<Observer>();
 
-        for (PhysicalBodyA physicalBodyA : players) {
+        for (AbstractPhysicalBody physicalBodyA : players) {
             bodies.add(physicalBodyA);
         }
     }
 
     private void setupWalls() {
-        PhysicalBodyA floor = new Wall(X, Y + HEIGHT, WIDTH, 200);
-        PhysicalBodyA ceiling = new Wall(X, Y - 200, WIDTH, 200);
-        PhysicalBodyA left = new Wall(X - 200, Y - 200, 200, HEIGHT + 400);
-        PhysicalBodyA right = new Wall(X + WIDTH, Y -200, 200, HEIGHT + 400);
-        walls = new PhysicalBodyA[]{floor, ceiling, left, right};
+        AbstractPhysicalBody floor = new Wall(X, Y + HEIGHT, WIDTH, 200);
+        AbstractPhysicalBody ceiling = new Wall(X, Y - 200, WIDTH, 200);
+        AbstractPhysicalBody left = new Wall(X - 200, Y - 200, 200, HEIGHT + 400);
+        AbstractPhysicalBody right = new Wall(X + WIDTH, Y -200, 200, HEIGHT + 400);
+        walls = new AbstractPhysicalBody[]{floor, ceiling, left, right};
     }
 
     public void changePlayerPos(int playerIndex, Integer[] newPos) {
@@ -62,7 +63,7 @@ public class battle {
     }
 
     public Boolean collidesWall(Shape a) {
-        for (PhysicalBodyA wall : walls) {
+        for (AbstractPhysicalBody wall : walls) {
             if (wall.collides(a)) return true;
         }
         return false;

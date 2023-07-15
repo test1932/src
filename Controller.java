@@ -3,7 +3,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import bodies.PhysicalBodyA;
+import bodies.AbstractPhysicalBody;
+
 public class Controller {
     private class updater extends Thread {
         private Controller cont;
@@ -29,10 +30,22 @@ public class Controller {
                 }
                 timeDiff = System.currentTimeMillis() - lastTime;
                 lastTime = System.currentTimeMillis();
-                // System.out.println(cont.heldKeys);
-
-                progressMotion();
+                handleGameState();
             }
+        }
+
+        private void handleGameState() {
+            switch (cont.game.gameState) {
+                case Playing:
+                    runBattle();
+                    break;
+                case Menu:
+                    break;
+            }
+        }
+
+        private void runBattle() {
+            progressMotion();
         }
 
         private void progressMotion() {
@@ -43,7 +56,7 @@ public class Controller {
         }
 
         private void updateVelocity() {
-            for (PhysicalBodyA body : cont.bat.bodies) {
+            for (AbstractPhysicalBody body : cont.bat.bodies) {
                 Double[] oldV = body.getVelocity();
                 Double[] newV = oldV;
                 newV[1] += 0.002 * timeDiff;
@@ -71,18 +84,6 @@ public class Controller {
             }
             cont.bat.players[0].setVel(new Double[]{x, y});
         }
-
-        //TODO implement flying
-        // private void handleMovement() {
-        //     double x = getVelocityMag(37, 39);
-        //     double y = getVelocityMag(38, 40);
-        //     if (x != 0 && y != 0) {
-        //         x = Math.sqrt(Math.pow(Math.abs(x), 2) / 2) * (x / Math.abs(x));
-        //         y = Math.sqrt(Math.pow(Math.abs(y), 2) / 2) * (y / Math.abs(y));
-        //     }
-        //     cont.bat.players[0].velocity[0] = x;
-        //     cont.bat.players[0].velocity[1] = y;
-        // }
 
         private double getVelocityMag(int keyL, int keyR) {
             if (cont.isKeyHeld(keyL)) return -0.3;
@@ -127,12 +128,15 @@ public class Controller {
     private ReentrantLock holdMutex = new ReentrantLock();
     private updater gameLoop;
     private battle bat;
+    public Game game;
+
     private LinkedList<Integer> heldKeys = new LinkedList<Integer>();
     private List<Pair<Integer, Long>> recentlyRel
         = Collections.synchronizedList(new LinkedList<Pair<Integer, Long>>());
 
-    public Controller (battle b) {
+    public Controller (battle b, Game g) {
         this.bat = b;
+        this.game = g;
         gameLoop = new updater(this, recMutex);
         gameLoop.start();
     }

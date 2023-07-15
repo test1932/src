@@ -2,19 +2,19 @@ package bodies.projectiles;
 
 import java.awt.Shape;
 
-import effects.EffectI;
-import bodies.characters.PlayerA;
-import bodies.PhysicalBodyA;
+import effects.IEffect;
+import bodies.characters.AbstractPlayer;
+import bodies.AbstractPhysicalBody;
 
-public abstract class ProjectileA extends PhysicalBodyA {
+public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private Long timeRemaining;
-    private EffectI effect = null;
-    private PlayerA player;
+    private IEffect effect = null;
+    private AbstractPlayer player;
     private Shape image;
 
     public Long lastTime;
 
-    public ProjectileA(EffectI effect, PlayerA player, Integer[] pos, Double[] vel) {
+    public AbstractProjectile(IEffect effect, AbstractPlayer player, Integer[] pos, Double[] vel) {
         this.effect = effect;
         this.player = player;
         this.image = null;
@@ -34,11 +34,11 @@ public abstract class ProjectileA extends PhysicalBodyA {
         return timeRemaining <= 0;
     }
 
-    public PlayerA getPlayer() {
+    public AbstractPlayer getPlayer() {
         return player;
     }
 
-    public EffectI getEffect() {
+    public IEffect getEffect() {
         return effect;
     }
 

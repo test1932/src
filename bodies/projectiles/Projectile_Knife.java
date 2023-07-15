@@ -1,12 +1,12 @@
 package bodies.projectiles;
 
-import effects.EffectI;
-import bodies.characters.PlayerA;
+import effects.IEffect;
+import bodies.characters.AbstractPlayer;
 
 // import actions.
 
 public class Projectile_Knife extends AttackProjectile{
-    public Projectile_Knife(int damage, EffectI effect, PlayerA player, Integer[] pos, Double[] vel) {
+    public Projectile_Knife(int damage, IEffect effect, AbstractPlayer player, Integer[] pos, Double[] vel) {
         super(damage, effect, player, pos, vel); // effect often null
     }
 

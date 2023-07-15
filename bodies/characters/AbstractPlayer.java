@@ -4,20 +4,20 @@ import java.awt.Rectangle;
 import java.util.LinkedList;
 import java.util.List;
 
-import bodies.PhysicalBodyA;
-import effects.EffectI;
+import bodies.AbstractPhysicalBody;
+import effects.IEffect;
 
-public abstract class PlayerA extends PhysicalBodyA {
+public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private Double speedMultiplier = 1.0;
     private int health;
     private Rectangle image;
     private Boolean facingRight;
-    private List<EffectI> effects = new LinkedList<EffectI>();
+    private List<IEffect> effects = new LinkedList<IEffect>();
 
     private final int LEFT_X = 120;
     private final int RIGHT_X = 700;
 
-    public PlayerA (Boolean isLeft) {
+    public AbstractPlayer (Boolean isLeft) {
         int x;
         x = isLeft? LEFT_X:RIGHT_X;
         setPosition(new Integer[]{x,500});
@@ -65,7 +65,7 @@ public abstract class PlayerA extends PhysicalBodyA {
         this.image = image;
     }
 
-    public void applyNewEffect(EffectI effect) {
+    public void applyNewEffect(IEffect effect) {
         effect.applyEffect(this);
         this.effects.add(effect);
     }
@@ -77,7 +77,7 @@ public abstract class PlayerA extends PhysicalBodyA {
             .toList();
     }
 
-    private EffectI reduceCount(EffectI e, Long timeDiff) {
+    private IEffect reduceCount(IEffect e, Long timeDiff) {
         e.reduceTime(timeDiff);
         return e;
     }
