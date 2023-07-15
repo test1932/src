@@ -8,7 +8,10 @@ public class MenuPause extends AbstractMenu {
 
     public MenuPause(Game game, AbstractMenu prevMenu) {
         super(game, "Pause", prevMenu);
-        options = new AbstractOption[]{};
+        options = new AbstractOption[]{
+            new OptionResume(game, this),
+            new OptionTitle(game, this)
+        };
         selectedIndex = 0;
     }
 

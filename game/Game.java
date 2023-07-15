@@ -18,7 +18,8 @@ public class Game {
     public Controller c;
 
     private List<Observer> observers;
-    private AbstractMenu curMenu = new MenuTitle(this, null);
+    public AbstractMenu titleMenu = new MenuTitle(this, null);
+    private AbstractMenu curMenu = titleMenu;
 
     public Game(Difficulty diff) {
         observers = new ArrayList<Observer>();

@@ -8,6 +8,8 @@ import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
 import bodies.characters.HumanPlayer.Keys;
+import game.Game.GameState;
+import menu.pause.MenuPause;
 
 public class Controller {
     private class updater extends Thread {
@@ -17,8 +19,10 @@ public class Controller {
         private ReentrantLock mutex;
         private Long keyPressTimout = Long.valueOf(0);
 
-        private final Long KEY_PRESS_TIMEOUT = Long.valueOf(100);
+        private final Long KEY_PRESS_TIMEOUT = 150l;
         private final int[] UP_DOWN_KEYCODES = {38,40};
+
+        public MenuPause pauseMenu = new MenuPause(game, null);
 
         public updater(Controller c, ReentrantLock mutex) {
             this.cont = c;
@@ -64,7 +68,6 @@ public class Controller {
         }
 
         private void handleSelection() {
-            //TODO z90 x88
             if (cont.isKeyHeld(90)) {
                 cont.game.getCurMenu().runSelected();
             }
@@ -81,6 +84,15 @@ public class Controller {
 
         private void runBattle() {
             progressMotion();
+            handlePause();
+        }
+
+        private void handlePause() {
+            if (cont.isKeyHeld(32)) {
+                cont.game.setCurMenu(pauseMenu);
+                cont.game.gameState = GameState.Menu;
+                cont.game.notifyObservers();
+            }
         }
 
         private void progressMotion() {
