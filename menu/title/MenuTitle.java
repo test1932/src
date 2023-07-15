@@ -6,13 +6,12 @@ import menu.AbstractOption;
 
 public class MenuTitle extends AbstractMenu {
 
-    public MenuTitle(Game game) {
-        super(game);
+    public MenuTitle(Game game, AbstractMenu prevMenu) {
+        super(game, "Title", prevMenu);
         options = new AbstractOption[]{
-            new OptionQuickGame(game),
-            new OptionSettings(game)
+            new OptionQuickGame(game, this),
+            new OptionSettings(game, this)
         };
-        selectedIndex = 0;
     }
 
     @Override

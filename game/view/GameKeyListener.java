@@ -1,7 +1,9 @@
-package game;
+package game.view;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import game.Controller;
 
 public class GameKeyListener implements KeyListener {
     private Controller cont;

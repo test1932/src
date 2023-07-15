@@ -6,8 +6,8 @@ import menu.AbstractOption;
 
 public class MenuPause extends AbstractMenu {
 
-    public MenuPause(Game game) {
-        super(game);
+    public MenuPause(Game game, AbstractMenu prevMenu) {
+        super(game, "Pause", prevMenu);
         options = new AbstractOption[]{};
         selectedIndex = 0;
     }

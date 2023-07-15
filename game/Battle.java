@@ -2,21 +2,17 @@ package game;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractPlayer;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
-import listeners.Observer;
 
 public class Battle {
     public Rectangle bounds;
     public AbstractPlayer[] players = {new HumanPlayer(true), 
-                                new HumanPlayer(false)};
-    private List<Observer> observers;
+                                       new HumanPlayer(false)};
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
 
     public AbstractPhysicalBody[] walls;
@@ -26,10 +22,12 @@ public class Battle {
     public final int WIDTH = 800;
     public final int HEIGHT = 500;
 
-    public Battle() {
+    private Game game;
+
+    public Battle(Game game) {
+        this.game = game;
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
-        observers = new ArrayList<Observer>();
 
         for (AbstractPhysicalBody physicalBodyA : players) {
             bodies.add(physicalBodyA);
@@ -46,13 +44,7 @@ public class Battle {
 
     public void changePlayerPos(int playerIndex, Integer[] newPos) {
         players[playerIndex].setPos(newPos);
-        for (Observer o : observers) {
-            o.update();
-        }
-    }
-
-    public void addObserver(Observer o) {
-        this.observers.add(o);
+        game.notifyObservers();
     }
 
     public Boolean outOfBounds(int isX, Shape s, Double d) {

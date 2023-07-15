@@ -15,6 +15,7 @@ public class Controller {
         private Long keyPressTimout = Long.valueOf(0);
 
         private final Long KEY_PRESS_TIMEOUT = Long.valueOf(100);
+        private final int[] UP_DOWN_KEYCODES = {38,40};
 
         public updater(Controller c, ReentrantLock mutex) {
             this.cont = c;
@@ -52,15 +53,27 @@ public class Controller {
         private void runMenu() {
             if (keyPressTimout <= 0) {
                 keyPressTimout = KEY_PRESS_TIMEOUT;
-                if (cont.isKeyHeld(38)) {
-                    cont.game.getCurMenu().decrementSelection(1);
-                }
-                else if (cont.isKeyHeld(40)) {
-                    cont.game.getCurMenu().incrementSelection(1);
-                }
+                handleArrows();
+                handleSelection();
                 return;
             }
             keyPressTimout -= timeDiff;
+        }
+
+        private void handleSelection() {
+            //TODO z90 x88
+            if (cont.isKeyHeld(90)) {
+                cont.game.getCurMenu().runSelected();
+            }
+        }
+
+        private void handleArrows() {
+            for (int code : UP_DOWN_KEYCODES) {
+                if (cont.isKeyHeld(code)) {
+                    cont.game.getCurMenu().incrementSelection(code - 39);
+                    cont.game.notifyObservers();
+                }
+            }
         }
 
         private void runBattle() {

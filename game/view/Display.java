@@ -1,22 +1,32 @@
-package game;
+package game.view;
 
 
 import javax.swing.JFrame;
 
 import bodies.AbstractPhysicalBody;
+import bodies.characters.AbstractPlayer;
+import game.Battle;
+import game.Controller;
 
 import java.awt.BasicStroke;
-//import java.awt.Color;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 
 import listeners.Observer;
+import menu.AbstractOption;
 
 public class Display extends JFrame implements Observer {
     private Battle b;
     private Controller cont;
     private BufferedImage backBuffer;
+    private final int OPTION_MIN_X = 100;
+    private final int OPTION_MIN_Y = 300;
+
+    private Line2D.Double underline 
+        = new Line2D.Double(OPTION_MIN_X, OPTION_MIN_Y, OPTION_MIN_X + 50, OPTION_MIN_Y);
 
     public Display(Battle b, Controller c) {
         this.b = b;
@@ -60,11 +70,34 @@ public class Display extends JFrame implements Observer {
         for (AbstractPhysicalBody wall : b.walls) {
             g2D.draw(wall.hitbox);
         }
-        g2D.draw(this.b.players[0].getImage());
+        for (AbstractPlayer player : this.b.players) {
+            g2D.draw(player.getImage());   
+        }
     }
 
     public void paintMenu(Graphics2D g2D) {
-        g2D.drawString("This is the menu", 100, 100);
+        g2D.drawString("This is the " + cont.game.getCurMenu().getMenuName() + " menu", OPTION_MIN_X, 100);
+        paintOptions(g2D);
+    }
+
+    private void paintOptions(Graphics2D g2D) {
+        int offset = OPTION_MIN_Y;
+        for (AbstractOption option : cont.game.getCurMenu().getOptions()) {
+            g2D.drawString(option.displayText, OPTION_MIN_X, offset += 30);
+        }
+        setYUnderline(cont.game.getCurMenu().getSelectedIndex());
+        highlightSelected(g2D);
+    }
+
+    private void highlightSelected(Graphics2D g2D) {
+        g2D.setColor(Color.YELLOW);
+        g2D.draw(underline);
+        g2D.setColor(Color.WHITE);
+    }
+
+    private void setYUnderline(int index) {
+        underline.y1 = OPTION_MIN_Y + 30 * (index + 1) + 10;
+        underline.y2 = underline.y1;
     }
 
     private void setup() {
@@ -73,7 +106,7 @@ public class Display extends JFrame implements Observer {
         backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         setResizable(false);
         setTitle("Touhou ??.? - Second Realm of Fallen Star");
-        b.addObserver(this);
+        cont.game.addObserver(this);
 
         update();
     }
