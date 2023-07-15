@@ -1,5 +1,6 @@
 package game;
 import menu.AbstractMenu;
+import menu.title.MenuTitle;
 
 public class Game {
     public enum GameState {Playing, Menu};
@@ -10,7 +11,7 @@ public class Game {
     public Difficulty difficulty;
     public Battle b;
     public Controller c;
-    private AbstractMenu curMenu;
+    private AbstractMenu curMenu = new MenuTitle(this);
 
     public Game(Difficulty diff) {
         this.difficulty = diff;

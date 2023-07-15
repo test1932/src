@@ -3,11 +3,11 @@ package game;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class BattleKeyListener implements KeyListener {
-    Controller cont;
-    Display disp;
+public class GameKeyListener implements KeyListener {
+    private Controller cont;
+    private Display disp;
 
-    public BattleKeyListener(Display d, Controller c) {
+    public GameKeyListener(Display d, Controller c) {
         this.cont = c;
         this.disp = d;
     }

@@ -21,7 +21,7 @@ public class Display extends JFrame implements Observer {
     public Display(Battle b, Controller c) {
         this.b = b;
         this.cont = c;
-        addKeyListener(new BattleKeyListener(this, cont));
+        addKeyListener(new GameKeyListener(this, cont));
         setup();
     }
 

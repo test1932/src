@@ -14,8 +14,9 @@ public abstract class AbstractMenu {
     public abstract void animateSelectionChange();
 
     public void incrementSelection(int n) {
-        if (selectedIndex == null) throw new NullPointerException();
-        selectedIndex = (selectedIndex + n) % options.length;
+        if (selectedIndex == null || options.length == 0) throw new NullPointerException();
+        selectedIndex = (selectedIndex + n + options.length) % options.length;
+        System.out.println(selectedIndex);
     }
 
     public void decrementSelection(int n) {

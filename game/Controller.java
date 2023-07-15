@@ -12,6 +12,9 @@ public class Controller {
         private Long lastTime = null;
         private Long timeDiff = Long.valueOf(0);
         private ReentrantLock mutex;
+        private Long keyPressTimout = Long.valueOf(0);
+
+        private final Long KEY_PRESS_TIMEOUT = Long.valueOf(100);
 
         public updater(Controller c, ReentrantLock mutex) {
             this.cont = c;
@@ -41,8 +44,23 @@ public class Controller {
                     runBattle();
                     break;
                 case Menu:
+                    runMenu();
                     break;
             }
+        }
+
+        private void runMenu() {
+            if (keyPressTimout <= 0) {
+                keyPressTimout = KEY_PRESS_TIMEOUT;
+                if (cont.isKeyHeld(38)) {
+                    cont.game.getCurMenu().decrementSelection(1);
+                }
+                else if (cont.isKeyHeld(40)) {
+                    cont.game.getCurMenu().incrementSelection(1);
+                }
+                return;
+            }
+            keyPressTimout -= timeDiff;
         }
 
         private void runBattle() {
