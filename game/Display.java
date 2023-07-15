@@ -1,3 +1,4 @@
+package game;
 
 
 import javax.swing.JFrame;
@@ -13,11 +14,11 @@ import java.awt.image.BufferedImage;
 import listeners.Observer;
 
 public class Display extends JFrame implements Observer {
-    private battle b;
+    private Battle b;
     private Controller cont;
     private BufferedImage backBuffer;
 
-    public Display(battle b, Controller c) {
+    public Display(Battle b, Controller c) {
         this.b = b;
         this.cont = c;
         addKeyListener(new BattleKeyListener(this, cont));

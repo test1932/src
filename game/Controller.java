@@ -1,3 +1,4 @@
+package game;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -127,14 +128,14 @@ public class Controller {
     private ReentrantLock recMutex = new ReentrantLock();
     private ReentrantLock holdMutex = new ReentrantLock();
     private updater gameLoop;
-    private battle bat;
+    private Battle bat;
     public Game game;
 
     private LinkedList<Integer> heldKeys = new LinkedList<Integer>();
     private List<Pair<Integer, Long>> recentlyRel
         = Collections.synchronizedList(new LinkedList<Pair<Integer, Long>>());
 
-    public Controller (battle b, Game g) {
+    public Controller (Battle b, Game g) {
         this.bat = b;
         this.game = g;
         gameLoop = new updater(this, recMutex);

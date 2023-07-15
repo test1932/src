@@ -1,3 +1,4 @@
+package game;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -11,7 +12,7 @@ import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
 import listeners.Observer;
 
-public class battle {
+public class Battle {
     public Rectangle bounds;
     public AbstractPlayer[] players = {new HumanPlayer(true), 
                                 new HumanPlayer(false)};
@@ -25,7 +26,7 @@ public class battle {
     public final int WIDTH = 800;
     public final int HEIGHT = 500;
 
-    public battle() {
+    public Battle() {
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
         observers = new ArrayList<Observer>();
