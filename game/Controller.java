@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import bodies.AbstractPhysicalBody;
+import bodies.characters.AbstractPlayer;
+import bodies.characters.HumanPlayer;
+import bodies.characters.HumanPlayer.Keys;
 
 public class Controller {
     private class updater extends Thread {
@@ -108,13 +111,18 @@ public class Controller {
         }
 
         private void handleMovement() {
-            Double[] oldV = cont.bat.players[0].getVelocity();
-            double x = getVelocityMag(37, 39);
-            double y = oldV[1];
-            if (cont.isKeyHeld(38) && (cont.bat.players[0].getVelocity()[1] == 0)) {
-                y -= 1;
+            for (AbstractPlayer player : cont.bat.players) {
+                if (!(player instanceof HumanPlayer)) continue;
+                Double[] oldV = player.getVelocity();
+                double x = getVelocityMag(((HumanPlayer)player).getKeyCode(Keys.Left), 
+                                          ((HumanPlayer)player).getKeyCode(Keys.Right));
+                double y = oldV[1];
+                if (cont.isKeyHeld(((HumanPlayer)player).getKeyCode(Keys.Up)) && 
+                    (player.getVelocity()[1] == 0)) {
+                    y -= 1;
+                }
+                player.setVel(new Double[]{x, y});
             }
-            cont.bat.players[0].setVel(new Double[]{x, y});
         }
 
         private double getVelocityMag(int keyL, int keyR) {
@@ -124,13 +132,15 @@ public class Controller {
         }
 
         private void updatePositions() {
-            Integer[] oldpos = cont.bat.players[0].getPosition();
-            Integer[] newPos = new Integer[]{oldpos[0], oldpos[1]};
-            for (int i = 0; i < 2; i++) {
-                newPos[i] += (int)((double)timeDiff.intValue()
-                    * cont.bat.players[0].getVelocity()[i]);
+            int pIndex = 0;
+            for (AbstractPlayer player : cont.bat.players) {
+                Integer[] oldpos = player.getPosition();
+                Integer[] newPos = new Integer[]{oldpos[0], oldpos[1]};
+                for (int i = 0; i < 2; i++) {
+                    newPos[i] += (int)((double)timeDiff.intValue() * player.getVelocity()[i]);
+                }
+                cont.bat.changePlayerPos(pIndex++, newPos);
             }
-            cont.bat.changePlayerPos(0, newPos);
         }
 
         private Pair<Integer, Long> reduceCount(Pair<Integer, Long> p) {

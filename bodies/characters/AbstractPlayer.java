@@ -13,12 +13,14 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private Rectangle image;
     private Boolean facingRight;
     private List<IEffect> effects = new LinkedList<IEffect>();
+    private boolean isLeft;
 
     private final int LEFT_X = 120;
     private final int RIGHT_X = 700;
 
     public AbstractPlayer (Boolean isLeft) {
         int x;
+        this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
         setPosition(new Integer[]{x,500});
         this.image = new Rectangle(x, 200, 20, 50);
@@ -80,5 +82,9 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private IEffect reduceCount(IEffect e, Long timeDiff) {
         e.reduceTime(timeDiff);
         return e;
+    }
+
+    public boolean isLeft() {
+        return isLeft;
     }
 }
