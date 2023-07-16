@@ -57,4 +57,8 @@ public abstract class AbstractMenu {
         options[selectedIndex].statefulHandler();
         game.notifyObservers();
     }
+
+    public AbstractOption getSelected() {
+        return options[selectedIndex];
+    }
 }

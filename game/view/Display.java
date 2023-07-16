@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 
 import listeners.Observer;
 import menu.AbstractOption;
+import menu.settings.config.KeyOption;
 
 public class Display extends JFrame implements Observer {
     private Battle b;
@@ -84,6 +85,9 @@ public class Display extends JFrame implements Observer {
         int offset = OPTION_MIN_Y;
         for (AbstractOption option : cont.game.getCurMenu().getOptions()) {
             g2D.drawString(option.displayText, OPTION_MIN_X, offset += 30);
+            if (option instanceof KeyOption) {
+                g2D.drawString(String.valueOf(((KeyOption)option).getKeyID()), OPTION_MIN_X + 100, offset);
+            }
         }
         setYUnderline(cont.game.getCurMenu().getSelectedIndex());
         highlightSelected(g2D);

@@ -13,7 +13,7 @@ public class OptionQuickGame extends AbstractOption {
 
     @Override
     public void statefulHandler() {
-        game.setCurMenu(null);
         game.gameState = GameState.Playing;
+        game.setCurMenu(null);
     }
 }

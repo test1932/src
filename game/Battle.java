@@ -24,8 +24,8 @@ public class Battle {
 
     private Game game;
 
-    public Battle(Game game) {
-        this.game = game;
+
+    public Battle() {
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
 
@@ -60,5 +60,9 @@ public class Battle {
             if (wall.collides(a)) return true;
         }
         return false;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 }

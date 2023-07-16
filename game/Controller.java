@@ -10,6 +10,7 @@ import bodies.characters.HumanPlayer;
 import bodies.characters.HumanPlayer.Keys;
 import game.Game.GameState;
 import menu.pause.MenuPause;
+import menu.settings.config.KeyOption;
 
 public class Controller {
     private class updater extends Thread {
@@ -19,7 +20,7 @@ public class Controller {
         private ReentrantLock mutex;
         private Long keyPressTimout = Long.valueOf(0);
 
-        private final Long KEY_PRESS_TIMEOUT = 150l;
+        private final Long KEY_PRESS_TIMEOUT = 100l;
         private final int[] UP_DOWN_KEYCODES = {38,40};
 
         public MenuPause pauseMenu = new MenuPause(game, null);
@@ -62,9 +63,19 @@ public class Controller {
                 keyPressTimout = KEY_PRESS_TIMEOUT;
                 handleArrows();
                 handleSelection();
-                return;
+                if (game.gameState != GameState.Menu) return;
+                setConfig();
             }
             keyPressTimout -= timeDiff;
+        }
+
+        private void setConfig() {
+            if (cont.heldKeys.size() != 0 && 
+                    cont.game.getCurMenu().getSelected() instanceof KeyOption &&
+                    cont.heldKeys.get(0) >= 65 && cont.heldKeys.get(0) <= 90) {
+                ((KeyOption)cont.game.getCurMenu().getSelected())
+                    .setKeyID(cont.heldKeys.getLast());
+            }
         }
 
         private void handleSelection() {

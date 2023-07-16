@@ -18,18 +18,21 @@ public class Game {
     public Controller c;
 
     private List<Observer> observers;
-    public AbstractMenu titleMenu = new MenuTitle(this, null);
-    private AbstractMenu curMenu = titleMenu;
+    public AbstractMenu titleMenu;
+    private AbstractMenu curMenu;
 
-    public Game(Difficulty diff) {
+    public Game(Difficulty diff, Battle b) {
         observers = new ArrayList<Observer>();
+        this.b = b;
+        this.titleMenu = new MenuTitle(this, null);
+        this.curMenu = titleMenu;
+        this.b.setGame(this);
         this.difficulty = diff;
         this.gameState = GameState.Menu;
     }
 
     public static void main(String[] args) {
-        Game theWorld = new Game(Difficulty.Normal);
-        theWorld.b = new Battle(theWorld);
+        Game theWorld = new Game(Difficulty.Normal, new Battle());
         theWorld.c = new Controller(theWorld.b, theWorld);
         theWorld.screen = new Display(theWorld.b, theWorld.c);
     }

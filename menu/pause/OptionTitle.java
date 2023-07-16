@@ -13,6 +13,7 @@ public class OptionTitle extends AbstractOption {
     @Override
     public void statefulHandler() {
         game.setCurMenu(game.titleMenu);
+        System.out.println(game.getCurMenu());
         game.notifyObservers();
     }
     
