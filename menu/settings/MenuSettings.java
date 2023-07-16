@@ -21,10 +21,6 @@ public class MenuSettings extends AbstractMenu{
             i++;
         }
         options[options.length - 1] = new OptionBack(game, this);
-
-        for (AbstractOption option : options) {
-            System.out.println(option);
-        }
     }
 
     @Override
