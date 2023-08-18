@@ -2,6 +2,8 @@ package game;
 import java.util.ArrayList;
 import java.util.List;
 
+import game.model.Battle;
+import game.model.Controller;
 import game.view.Display;
 import listeners.Observer;
 import menu.AbstractMenu;

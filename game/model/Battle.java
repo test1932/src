@@ -1,4 +1,4 @@
-package game;
+package game.model;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -8,6 +8,7 @@ import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractPlayer;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
+import game.Game;
 
 public class Battle {
     public Rectangle bounds;

@@ -1,10 +1,17 @@
+// package
 package actions;
 
+// standard library imports
 import java.util.LinkedList;
 
+// local imports
 import bodies.projectiles.AbstractProjectile;
 import bodies.characters.AbstractPlayer;
 
+/**
+ * @author: ~Yukarin~ <3
+ * abstract class representing actions which players can perform in battle.
+ */
 public abstract class AbstractAction extends Thread{
     protected Long durationRem; //To be set in subclasses
     private LinkedList<AbstractProjectile> projectiles;

@@ -5,8 +5,8 @@ import javax.swing.JFrame;
 
 import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
-import game.Battle;
-import game.Controller;
+import game.model.Battle;
+import game.model.Controller;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
