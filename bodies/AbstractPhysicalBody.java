@@ -15,8 +15,8 @@ public class AbstractPhysicalBody {
      * 20:10 11/7/23
      */
     public boolean collides(Shape other) {
-        Area areaA = new Area(hitbox);
-        areaA.intersect(new Area(other));
+        Area areaA = new Area(hitbox.getBounds2D());
+        areaA.intersect(new Area(other.getBounds2D()));
         return !areaA.isEmpty();
     }
 

@@ -1,5 +1,6 @@
 package bodies.projectiles;
 
+import java.awt.Rectangle;
 import java.awt.Shape;
 
 import actions.AbstractSpellAction;
@@ -20,8 +21,9 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
             Double[] vel, AbstractSpellAction spellAction) {
         this.effect = effect;
         this.owner = player;
-        this.image = null;
+        this.image = new Rectangle(pos[0], pos[1], 10, 20);
         this.spellAction = spellAction;
+        this.hitbox = new Rectangle(pos[0], pos[1], 10, 20);
         setVelocity(vel);
         setPosition(pos);
     }
@@ -52,5 +54,10 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
 
     public AbstractSpellAction getSpellAction() {
         return spellAction;
+    }
+
+    @Override
+    public String toString() {
+        return "projectile at (" + String.valueOf(getPosition()[0] + "," + String.valueOf(getPosition()[1]) + ")");
     }
 }

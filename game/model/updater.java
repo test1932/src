@@ -1,16 +1,17 @@
 package game.model;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
+import actions.AbstractSpellActionFactory;
 import game.Game;
 import game.Game.GameState;
 import menu.pause.MenuPause;
 
 import bodies.AbstractPhysicalBody;
-import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractCharacter.Combo;
@@ -186,8 +187,8 @@ public class updater extends Thread {
         for (AbstractPlayer player : cont.bat.players) {
             if (!(player instanceof HumanPlayer)) continue;
             if (player.character.getTimeout() <= 0) {
-                interpretKeyPresses();
-                System.out.println(cont.recentlyRel);
+                interpretKeyPresses((HumanPlayer)player);
+                // System.out.println(cont.recentlyRel);
             }
             else {
                 player.character.decrementTimeout(timeDiff);
@@ -195,29 +196,33 @@ public class updater extends Thread {
         }
     }
 
-    private void interpretKeyPresses() {
-        for (AbstractPlayer player : cont.bat.players) {
-            if (!(player instanceof HumanPlayer)) continue;
-            Combo[] playerKeys = interpretPlayerKeyPresses((HumanPlayer)player);//?
-            AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
-            if (spellAction != null) spellAction.start();
+    private void interpretKeyPresses(HumanPlayer player) {
+        Combo[] playerKeys = interpretPlayerKeyPresses(player);
+        AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
+        if (spellAction != null) {
+            player.character.resetTimeout(spellAction.getCoolDown());
+            spellAction.start();
         }
     }
 
     private AbstractSpellAction toSpellAction(Combo[] combo, AbstractPlayer p) {
-        for (Pair<Combo[], AbstractSpellAction> comboPair : p.character.comboMapping) {
-            if (combo.equals(comboPair.fst)) return comboPair.snd;
+        for (Pair<Combo[], AbstractSpellActionFactory> comboPair : p.character.comboMapping) {
+            if (Arrays.equals(combo,comboPair.fst)) return comboPair.snd.newSpell();
         }
         return null;
     }
 
     private Combo[] interpretPlayerKeyPresses(HumanPlayer p) {
-        return cont.recentlyRel.stream().map(x -> keyToCombo(pairToKeys(x, p), 
+        return cont.heldKeys.stream().map(x -> keyToCombo(intToKeys(x, p), 
             p.getFacingDirection())).filter(x -> x != null).toList().toArray(new Combo[0]);
     }
 
     private Keys pairToKeys(Pair<Integer, Long> keycode, HumanPlayer p) {
         return p.getInputAction(keycode.fst);
+    }
+
+    private Keys intToKeys(Integer keycode, HumanPlayer p) {
+        return p.getInputAction(keycode);
     }
 
     private Combo keyToCombo(Keys key, boolean facingLeft) {
@@ -248,6 +253,7 @@ public class updater extends Thread {
      * updates the velocity of all physical bodies.
      */
     private void updateVelocity() {
+        cont.bat.bodiesLock.lock();
         for (AbstractPhysicalBody body : cont.bat.bodies) {
             Double[] oldV = body.getVelocity();
             Double[] newV = oldV;
@@ -257,6 +263,7 @@ public class updater extends Thread {
             }
             body.setVelocity(newV);
         }
+        cont.bat.bodiesLock.unlock();
     }
 
     /**

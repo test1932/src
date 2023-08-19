@@ -27,6 +27,13 @@ public class Display extends JFrame implements Observer {
     private BufferedImage backBuffer;
     private final int OPTION_MIN_X = 100;
     private final int OPTION_MIN_Y = 300;
+    private final int WIDTH = 1000;
+    private final int HEIGHT = 700;
+
+    private ProgressBar[] healthBars = new ProgressBar[]{
+        new ProgressBar(false, 50, 50, 300, 20, 0.7),
+        new ProgressBar(true, WIDTH - 300 - 50, 50, 300, 20, 0.7)
+    };
 
     private Line2D.Double underline 
         = new Line2D.Double(OPTION_MIN_X, OPTION_MIN_Y, OPTION_MIN_X + 50, OPTION_MIN_Y);
@@ -36,6 +43,10 @@ public class Display extends JFrame implements Observer {
         this.cont = c;
         addKeyListener(new GameKeyListener(this, cont));
         setup();
+        healthBars[0].setFillColour(Color.CYAN);
+        healthBars[0].setOutlineColour(Color.BLUE);
+        healthBars[1].setFillColour(Color.CYAN);
+        healthBars[1].setOutlineColour(Color.BLUE);
     }
 
     @Override
@@ -54,7 +65,7 @@ public class Display extends JFrame implements Observer {
     }
 
     public void paintScreen(Graphics2D g2D) {
-        g2D.clearRect(0,0, 1000, 700);
+        g2D.clearRect(0,0, WIDTH, HEIGHT);
         switch (cont.game.gameState) {
             case Menu:
                 paintMenu(g2D); break;
@@ -72,6 +83,13 @@ public class Display extends JFrame implements Observer {
         paintWalls(g2D); // paint walls
         paintPlayers(g2D); // paint players
         paintProjectiles(g2D); // paints projectiles
+        paintStats(g2D);
+    }
+
+    private void paintStats(Graphics2D g2D) {
+        for (ProgressBar progressBar : healthBars) {
+            progressBar.paintProgress(g2D);
+        }
     }
 
     private void paintWalls(Graphics2D g2D) {

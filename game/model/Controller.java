@@ -17,7 +17,7 @@ import game.Game;
 public class Controller {
 
     // constants
-    private final Long RECENT_TIMEOUT = Long.valueOf(1000);
+    private final long RECENT_TIMEOUT = 500l;
 
     // mutexes and references
     private ReentrantLock recMutex = new ReentrantLock();

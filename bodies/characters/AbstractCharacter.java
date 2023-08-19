@@ -2,17 +2,18 @@ package bodies.characters;
 
 import java.util.ArrayList;
 
-import actions.AbstractSpellAction;
+import actions.AbstractSpellActionFactory;
+import game.model.Battle;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {
     public enum Combo {Forward, Back, Up, Down, Melee, Weak, Strong}
 
-    public ArrayList<Pair<Combo[], AbstractSpellAction>> comboMapping
-        = new ArrayList<Pair<Combo[], AbstractSpellAction>>();
+    public ArrayList<Pair<Combo[], AbstractSpellActionFactory>> comboMapping
+        = new ArrayList<Pair<Combo[], AbstractSpellActionFactory>>();
 
-    private Pair<Combo[],AbstractSpellAction> makePair(Combo[] keys, AbstractSpellAction combo) {
-        return new Pair<Combo[],AbstractSpellAction>(keys, combo);
+    private Pair<Combo[],AbstractSpellActionFactory> makePair(Combo[] keys, AbstractSpellActionFactory combo) {
+        return new Pair<Combo[],AbstractSpellActionFactory>(keys, combo);
     }
 
     public void setup() {
@@ -55,36 +56,27 @@ public abstract class AbstractCharacter {
     }
 
     private AbstractPlayer player;
-    protected long weakTimeout = 300l;
-    protected long strongTimeout = 1000l;
-    protected long meleeTimeout = 500l;
     protected long timeout;
+    protected Battle bat;
 
     protected int meleeCombo = 3;
 
-    public AbstractCharacter(AbstractPlayer player) {
+    public AbstractCharacter(AbstractPlayer player, Battle bat) {
         setup();
         this.player = player;
+        this.bat = bat;
     }
 
     public AbstractPlayer getPlayer() {
         return player;
     }
 
-    public void resetStrongTimeout() {
-        timeout += strongTimeout;
-    }
-
-    public void resetWeakTimeout() {
-        timeout += weakTimeout;
-    }
-
-    public void resetMeleeTimeout() {
-        timeout += meleeTimeout;
+    public void resetTimeout(long timeDiff) {
+        timeout = timeDiff;
     }
 
     public void decrementTimeout(long timeDiff) {
-        this.timeout -= timeDiff;
+        this.timeout = Math.max(0, this.timeout - timeDiff);
     }
 
     public long getTimeout() {

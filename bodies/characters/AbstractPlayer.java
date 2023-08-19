@@ -8,15 +8,16 @@ import bodies.AbstractPhysicalBody;
 import effects.IEffect;
 
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
+    private final int LEFT_X = 120;
+    private final int RIGHT_X = 700;
+    private final int MAX_HEALTH = 1000;
+
     protected Double speedMultiplier = 1.0;
-    protected int health;
+    protected int health = MAX_HEALTH;
     private Rectangle image;
     private Boolean facingLeft;
     private List<IEffect> effects = new LinkedList<IEffect>();
     private boolean isLeft;
-
-    private final int LEFT_X = 120;
-    private final int RIGHT_X = 700;
 
     public AbstractCharacter character;
 

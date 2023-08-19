@@ -3,7 +3,10 @@ package game.model;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
 import bodies.characters.HumanPlayer;
@@ -15,12 +18,14 @@ import game.Game;
 
 public class Battle {
     public Rectangle bounds;
-    public AbstractPlayer[] players = {new HumanPlayer(true, null), 
-                                       new HumanPlayer(false, null)};
+    public AbstractPlayer[] players 
+        = {new HumanPlayer(true, null), 
+           new HumanPlayer(false, null)};
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
     public LinkedList<AbstractSpellAction> spellActions = new LinkedList<AbstractSpellAction>();
 
     public AbstractPhysicalBody[] walls;
+    public ReentrantLock bodiesLock = new ReentrantLock();
 
     public final int X = 100;
     public final int Y = 50;
@@ -31,13 +36,15 @@ public class Battle {
 
 
     public Battle() {
-        players[0].character = new Sakuya(players[0]);
-        players[1].character = new Sakuya(players[1]);
+        players[0].character = new Sakuya(players[0], this);
+        players[1].character = new Sakuya(players[1], this);
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
 
         for (AbstractPhysicalBody physicalBodyA : players) {
+            bodiesLock.lock();
             bodies.add(physicalBodyA);
+            bodiesLock.unlock();
         }
     }
 
