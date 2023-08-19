@@ -12,13 +12,13 @@ import bodies.characters.AbstractPlayer;
  * @author: ~Yukarin~ <3
  * abstract class representing actions which players can perform in battle.
  */
-public abstract class AbstractAction extends Thread{
+public abstract class AbstractSpellAction extends Thread{
     protected Long durationRem; //To be set in subclasses
     private LinkedList<AbstractProjectile> projectiles;
-    private AbstractPlayer player;
+    private AbstractPlayer owner;
 
-    public AbstractAction(AbstractPlayer player) {
-        this.player = player;
+    public AbstractSpellAction(AbstractPlayer player) {
+        this.owner = player;
     }
 
     protected abstract void startAction();
@@ -43,7 +43,7 @@ public abstract class AbstractAction extends Thread{
         this.projectiles.add(projectile);
     }
 
-    public AbstractPlayer getPlayer() {
-        return player;
+    public AbstractPlayer getOwner() {
+        return owner;
     }
 }

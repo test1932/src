@@ -2,6 +2,7 @@ package bodies.projectiles;
 
 import java.awt.Shape;
 
+import actions.AbstractSpellAction;
 import effects.IEffect;
 import bodies.characters.AbstractPlayer;
 import bodies.AbstractPhysicalBody;
@@ -9,15 +10,18 @@ import bodies.AbstractPhysicalBody;
 public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private Long timeRemaining;
     private IEffect effect = null;
-    private AbstractPlayer player;
+    private AbstractPlayer owner;
     private Shape image;
+    private AbstractSpellAction spellAction;
 
     public Long lastTime;
 
-    public AbstractProjectile(IEffect effect, AbstractPlayer player, Integer[] pos, Double[] vel) {
+    public AbstractProjectile(IEffect effect, AbstractPlayer player, Integer[] pos, 
+            Double[] vel, AbstractSpellAction spellAction) {
         this.effect = effect;
-        this.player = player;
+        this.owner = player;
         this.image = null;
+        this.spellAction = spellAction;
         setVelocity(vel);
         setPosition(pos);
     }
@@ -34,8 +38,8 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
         return timeRemaining <= 0;
     }
 
-    public AbstractPlayer getPlayer() {
-        return player;
+    public AbstractPlayer getOwner() {
+        return owner;
     }
 
     public IEffect getEffect() {
@@ -44,5 +48,9 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
 
     public Shape getImage() {
         return image;
+    }
+
+    public AbstractSpellAction getSpellAction() {
+        return spellAction;
     }
 }

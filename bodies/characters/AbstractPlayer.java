@@ -8,23 +8,29 @@ import bodies.AbstractPhysicalBody;
 import effects.IEffect;
 
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
-    private Double speedMultiplier = 1.0;
-    private int health;
+    protected Double speedMultiplier = 1.0;
+    protected int health;
     private Rectangle image;
-    private Boolean facingRight;
+    private Boolean facingLeft;
     private List<IEffect> effects = new LinkedList<IEffect>();
     private boolean isLeft;
 
     private final int LEFT_X = 120;
     private final int RIGHT_X = 700;
 
-    public AbstractPlayer (Boolean isLeft) {
+    public AbstractCharacter character;
+
+    public AbstractPlayer (Boolean isLeft, AbstractCharacter character) {
         int x;
         this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
         setPosition(new Integer[]{x,500});
+
         this.image = new Rectangle(x, 200, 20, 50);
         this.hitbox = this.image;
+        this.character = character;
+        this.facingLeft = !isLeft;
+        gravityApplies = true;
     }
 
     public void setPos(Integer[] newPos) {
@@ -34,12 +40,12 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void setVel(Double[] velocity) {
-        facingRight = velocity[0] > 0;
+        //Something was here TODO
         setVelocity(velocity);
     }
 
     public Boolean getFacingDirection() {
-        return facingRight;
+        return facingLeft;
     }
 
     //getters and setters

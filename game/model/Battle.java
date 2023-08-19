@@ -2,9 +2,12 @@ package game.model;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.util.LinkedList;
 
+import actions.AbstractSpellAction;
 import bodies.characters.HumanPlayer;
+import bodies.characters.Sakuya.Sakuya;
 import bodies.characters.AbstractPlayer;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
@@ -12,9 +15,10 @@ import game.Game;
 
 public class Battle {
     public Rectangle bounds;
-    public AbstractPlayer[] players = {new HumanPlayer(true), 
-                                       new HumanPlayer(false)};
+    public AbstractPlayer[] players = {new HumanPlayer(true, null), 
+                                       new HumanPlayer(false, null)};
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
+    public LinkedList<AbstractSpellAction> spellActions = new LinkedList<AbstractSpellAction>();
 
     public AbstractPhysicalBody[] walls;
 
@@ -27,6 +31,8 @@ public class Battle {
 
 
     public Battle() {
+        players[0].character = new Sakuya(players[0]);
+        players[1].character = new Sakuya(players[1]);
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
 
@@ -61,6 +67,12 @@ public class Battle {
             if (wall.collides(a)) return true;
         }
         return false;
+    }
+
+    public boolean shapeInBounds(Shape s) {
+        Area areaA = new Area(s);
+        areaA.intersect(new Area(bounds));
+        return areaA.equals(new Area(s));
     }
 
     public void setGame(Game game) {

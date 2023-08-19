@@ -4,14 +4,16 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import actions.AbstractSpellAction;
 import game.Game;
 import game.Game.GameState;
-import game.model.Controller.Pair;
 import menu.pause.MenuPause;
 
 import bodies.AbstractPhysicalBody;
+import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
+import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
 import menu.settings.config.KeyOption;
 
@@ -177,6 +179,69 @@ public class updater extends Thread {
         updateVelocity();
         updatePositions();
         removeOldRecent();
+        handleSpellActions();
+    }
+
+    private void handleSpellActions() {
+        for (AbstractPlayer player : cont.bat.players) {
+            if (!(player instanceof HumanPlayer)) continue;
+            if (player.character.getTimeout() <= 0) {
+                interpretKeyPresses();
+                System.out.println(cont.recentlyRel);
+            }
+            else {
+                player.character.decrementTimeout(timeDiff);
+            }
+        }
+    }
+
+    private void interpretKeyPresses() {
+        for (AbstractPlayer player : cont.bat.players) {
+            if (!(player instanceof HumanPlayer)) continue;
+            Combo[] playerKeys = interpretPlayerKeyPresses((HumanPlayer)player);//?
+            AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
+            if (spellAction != null) spellAction.start();
+        }
+    }
+
+    private AbstractSpellAction toSpellAction(Combo[] combo, AbstractPlayer p) {
+        for (Pair<Combo[], AbstractSpellAction> comboPair : p.character.comboMapping) {
+            if (combo.equals(comboPair.fst)) return comboPair.snd;
+        }
+        return null;
+    }
+
+    private Combo[] interpretPlayerKeyPresses(HumanPlayer p) {
+        return cont.recentlyRel.stream().map(x -> keyToCombo(pairToKeys(x, p), 
+            p.getFacingDirection())).filter(x -> x != null).toList().toArray(new Combo[0]);
+    }
+
+    private Keys pairToKeys(Pair<Integer, Long> keycode, HumanPlayer p) {
+        return p.getInputAction(keycode.fst);
+    }
+
+    private Combo keyToCombo(Keys key, boolean facingLeft) {
+        if (key == null) return null;
+        switch(key) {
+            case Up:
+                return Combo.Up;
+            case Down:
+                return Combo.Down;
+            case Left:
+                if (facingLeft) return Combo.Forward;
+                else return Combo.Back;
+            case Right:
+                if (facingLeft) return Combo.Back;
+                else return Combo.Forward;
+            case Weak:
+                return Combo.Weak;
+            case Strong:
+                return Combo.Strong;
+            case Melee:
+                return Combo.Melee;
+            default:
+                return null;
+        }
     }
 
     /**
@@ -186,7 +251,7 @@ public class updater extends Thread {
         for (AbstractPhysicalBody body : cont.bat.bodies) {
             Double[] oldV = body.getVelocity();
             Double[] newV = oldV;
-            newV[1] += 0.002 * timeDiff; //TODO use gravityApplies
+            if (body.gravityApplies) newV[1] += 0.002 * timeDiff;
             for (int i = 0; i < 2; i++) {
                 newV[i] = cont.bat.outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i]; // TODO collision with other player
             }

@@ -3,8 +3,10 @@ package game.view;
 
 import javax.swing.JFrame;
 
+import actions.AbstractSpellAction;
 import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
+import bodies.projectiles.AbstractProjectile;
 import game.model.Battle;
 import game.model.Controller;
 
@@ -67,12 +69,29 @@ public class Display extends JFrame implements Observer {
     }
 
     public void paintBattle(Graphics2D g2D) {
+        paintWalls(g2D); // paint walls
+        paintPlayers(g2D); // paint players
+        paintProjectiles(g2D); // paints projectiles
+    }
+
+    private void paintWalls(Graphics2D g2D) {
         g2D.draw(this.b.bounds);
         for (AbstractPhysicalBody wall : b.walls) {
             g2D.draw(wall.hitbox);
         }
+    }
+
+    private void paintPlayers(Graphics2D g2D) {
         for (AbstractPlayer player : this.b.players) {
             g2D.draw(player.getImage());   
+        }
+    }
+
+    private void paintProjectiles(Graphics2D g2D) {
+        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
+            for (AbstractProjectile projectile : spellAction.getProjectiles()) {
+                g2D.draw(projectile.getImage());
+            }
         }
     }
 

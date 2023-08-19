@@ -8,8 +8,8 @@ public class HumanPlayer extends AbstractPlayer {
     private HashMap<Keys, Integer> keyMapping = new HashMap<Keys, Integer>();
     private HashMap<Integer, Keys> inverseKeyMapping = new HashMap<Integer, Keys>();
 
-    public HumanPlayer(Boolean isLeft) {
-        super(isLeft);
+    public HumanPlayer(Boolean isLeft, AbstractCharacter character) {
+        super(isLeft, character);
         resetMapping();
     }
 

@@ -28,6 +28,10 @@ public class AbstractPhysicalBody {
         this.position = position;
     }
 
+    public void incrementPosition(int index, int increment) {
+        position[index] += increment;
+    }
+
     public Double[] getVelocity() {
         return velocity;
     }
