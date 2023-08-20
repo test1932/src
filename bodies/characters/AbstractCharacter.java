@@ -19,9 +19,6 @@ public abstract class AbstractCharacter {
     public void setup() {
         // appending to end
         Combo[][] combos = new Combo[][] {
-            {Combo.Down, Combo.Down, Combo.Weak},
-            {Combo.Down, Combo.Down, Combo.Strong},
-
             {Combo.Down, Combo.Forward, Combo.Melee},
             {Combo.Down, Combo.Forward, Combo.Weak},
             {Combo.Down, Combo.Forward, Combo.Strong},

@@ -1,13 +1,19 @@
 package bodies;
 
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
 
 public class AbstractPhysicalBody {
-    public Shape hitbox;
+    public Rectangle hitbox = new Rectangle();
+    protected Rectangle image;
     public boolean gravityApplies = false;
     private Integer[] position;
     private Double[] velocity = {0.0,0.0};
+
+    public AbstractPhysicalBody() {
+        this.image = this.hitbox;
+    }
 
     /**
      * author: user2221343
@@ -26,6 +32,10 @@ public class AbstractPhysicalBody {
 
     public void setPosition(Integer[] position) {
         this.position = position;
+        this.hitbox.x = position[0];
+        this.hitbox.y = position[1];
+        this.image.x = position[0];
+        this.image.y = position[1];
     }
 
     public void incrementPosition(int index, int increment) {
@@ -38,5 +48,13 @@ public class AbstractPhysicalBody {
 
     public void setVelocity(Double[] velocity) {
         this.velocity = velocity;
+    }
+
+    public void setVelocityComp(int index, Double val) {
+        this.velocity[index] = val;
+    }
+
+    public Shape getImage() {
+        return image;
     }
 }

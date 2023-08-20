@@ -1,6 +1,5 @@
 package game.view;
 
-
 import javax.swing.JFrame;
 
 import actions.AbstractSpellAction;
@@ -12,8 +11,10 @@ import game.model.Controller;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 
@@ -25,14 +26,18 @@ public class Display extends JFrame implements Observer {
     private Battle b;
     private Controller cont;
     private BufferedImage backBuffer;
-    private final int OPTION_MIN_X = 100;
-    private final int OPTION_MIN_Y = 300;
-    private final int WIDTH = 1000;
-    private final int HEIGHT = 700;
+
+    private Font mainFont = new Font("sansserif", Font.PLAIN, 20);
+    private Rectangle menuArea = new Rectangle(50, 50, 250, 450);
+
+    private final int OPTION_MIN_X = 75;
+    private final int OPTION_MIN_Y = 200;
+    private final int WIDTH = 960;
+    private final int HEIGHT = 540;
 
     private ProgressBar[] healthBars = new ProgressBar[]{
-        new ProgressBar(false, 50, 50, 300, 20, 0.7),
-        new ProgressBar(true, WIDTH - 300 - 50, 50, 300, 20, 0.7)
+        new ProgressBar(false, 50, 50, 300, 20),
+        new ProgressBar(true, WIDTH - 300 - 50, 50, 300, 20)
     };
 
     private Line2D.Double underline 
@@ -65,11 +70,14 @@ public class Display extends JFrame implements Observer {
     }
 
     public void paintScreen(Graphics2D g2D) {
+        g2D.setFont(mainFont);
         g2D.clearRect(0,0, WIDTH, HEIGHT);
         switch (cont.game.gameState) {
             case Menu:
+                g2D.setColor(Color.BLACK);
                 paintMenu(g2D); break;
             case Playing:
+                g2D.setColor(Color.WHITE);
                 paintBattle(g2D); break;
         }
     }
@@ -87,8 +95,9 @@ public class Display extends JFrame implements Observer {
     }
 
     private void paintStats(Graphics2D g2D) {
-        for (ProgressBar progressBar : healthBars) {
-            progressBar.paintProgress(g2D);
+        for (int i = 0; i < healthBars.length; i++) {
+            healthBars[i].setProgress((double)b.players[i].getHealth() / (double)b.players[i].MAX_HEALTH);
+            healthBars[i].paintProgress(g2D);
         }
     }
 
@@ -106,14 +115,23 @@ public class Display extends JFrame implements Observer {
     }
 
     private void paintProjectiles(Graphics2D g2D) {
+        cont.bat.spellActionLock.lock();
         for (AbstractSpellAction spellAction : cont.bat.spellActions) {
+            spellAction.projectileLock.lock();
             for (AbstractProjectile projectile : spellAction.getProjectiles()) {
                 g2D.draw(projectile.getImage());
             }
+            spellAction.projectileLock.unlock();
         }
+        cont.bat.spellActionLock.unlock();
     }
 
     public void paintMenu(Graphics2D g2D) {
+        g2D.drawImage(cont.game.getCurMenu().getBackground(), 0, 0, WIDTH, HEIGHT, this);
+        Color temp = g2D.getColor();
+        g2D.setColor(new Color(200, 200, 200, 100));
+        g2D.fill(menuArea);
+        g2D.setColor(temp);
         g2D.drawString("This is the " + cont.game.getCurMenu().getMenuName() + " menu", OPTION_MIN_X, 100);
         paintOptions(g2D);
     }
@@ -131,9 +149,9 @@ public class Display extends JFrame implements Observer {
     }
 
     private void highlightSelected(Graphics2D g2D) {
-        g2D.setColor(Color.YELLOW);
+        g2D.setColor(Color.RED);
         g2D.draw(underline);
-        g2D.setColor(Color.WHITE);
+        g2D.setColor(Color.BLACK);
     }
 
     private void setYUnderline(int index) {
@@ -143,7 +161,7 @@ public class Display extends JFrame implements Observer {
 
     private void setup() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(1000,600);
+        setSize(WIDTH, HEIGHT);
         backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         setResizable(false);
         setTitle("Touhou ??.? - Second Realm of Fallen Star");

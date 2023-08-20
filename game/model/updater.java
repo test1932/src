@@ -1,5 +1,6 @@
 package game.model;
 
+import java.awt.Shape;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -16,6 +17,7 @@ import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
+import bodies.projectiles.AbstractProjectile;
 import menu.settings.config.KeyOption;
 
 public class updater extends Thread {
@@ -183,7 +185,42 @@ public class updater extends Thread {
         handleSpellActions();
     }
 
+    private void checkFacingDirections() {
+        cont.bat.bodiesLock.lock();
+        AbstractPlayer player1 = cont.bat.players[0];
+        AbstractPlayer player2 = cont.bat.players[1];
+        player1.setFacingLeft(player1.hitbox.x > player2.hitbox.x);
+        player2.setFacingLeft(player2.hitbox.x > player1.hitbox.x);
+        cont.bat.bodiesLock.unlock();
+    }
+
+    private void playerCollision() {
+        cont.bat.bodiesLock.lock();
+        if (!cont.bat.players[0].collides(cont.bat.players[1].hitbox)) {
+             cont.bat.bodiesLock.unlock();
+             return;
+        }
+        cont.bat.bodiesLock.unlock();
+    }
+
+    public Boolean playerColliding(boolean isX, Shape s, AbstractPlayer p) {
+        cont.bat.bodiesLock.lock();
+        if (p.getVelocity()[isX ? 0 : 1] == 0) return false;
+        boolean retval;
+        double dif;
+        if (isX) {
+            dif = s.getBounds2D().getCenterX() - p.hitbox.getBounds2D().getCenterX();
+        }
+        else {
+            dif = s.getBounds2D().getCenterY() - p.hitbox.getBounds2D().getCenterY();
+        }
+        retval = (p.collides(s) && p.getVelocity()[isX ? 0 : 1] * dif > 0);
+        cont.bat.bodiesLock.unlock();
+        return retval;
+    }
+
     private void handleSpellActions() {
+        cont.bat.bodiesLock.lock();
         for (AbstractPlayer player : cont.bat.players) {
             if (!(player instanceof HumanPlayer)) continue;
             if (player.character.getTimeout() <= 0) {
@@ -194,6 +231,22 @@ public class updater extends Thread {
                 player.character.decrementTimeout(timeDiff);
             }
         }
+        cont.bat.bodiesLock.unlock();
+        checkForCollisions();
+    }
+
+    private void checkForCollisions() {
+        cont.bat.spellActionLock.lock();
+        for (int i = 0; i < cont.bat.spellActions.size(); i++) {
+            checkSpellActionForCollisions(cont.bat.spellActions.get(i));
+        }
+        cont.bat.spellActionLock.unlock();
+    }
+
+    private void checkSpellActionForCollisions(AbstractSpellAction spellAction) {
+        spellAction.projectileLock.lock();
+        spellAction.collision(cont.bat.otherPlayer(spellAction.getOwner()));
+        spellAction.projectileLock.unlock();
     }
 
     private void interpretKeyPresses(HumanPlayer player) {
@@ -250,7 +303,7 @@ public class updater extends Thread {
     }
 
     /**
-     * updates the velocity of all physical bodies.
+     * updates the velocity of bodies.
      */
     private void updateVelocity() {
         cont.bat.bodiesLock.lock();
@@ -259,11 +312,34 @@ public class updater extends Thread {
             Double[] newV = oldV;
             if (body.gravityApplies) newV[1] += 0.002 * timeDiff;
             for (int i = 0; i < 2; i++) {
-                newV[i] = cont.bat.outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i]; // TODO collision with other player
+                newV[i] = cont.bat.outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i];
             }
             body.setVelocity(newV);
         }
         cont.bat.bodiesLock.unlock();
+        updateSpellActionsProjectilesVelocity();
+    }
+
+    public void updateSpellActionsProjectilesVelocity() {
+        cont.bat.spellActionLock.lock();
+        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
+            updateProjectilesVelocity(spellAction);
+        }
+        cont.bat.spellActionLock.unlock();
+    }
+
+    private void updateProjectilesVelocity(AbstractSpellAction spellAction) {
+        spellAction.projectileLock.lock();
+        for (int i = 0; i < spellAction.getProjectiles().size(); i++) {
+            Double[] oldV = spellAction.getProjectiles().get(i).getVelocity();
+            Double[] newV = oldV;
+            if (spellAction.getProjectiles().get(i).gravityApplies) newV[1] += 0.002 * timeDiff;
+            for (int j = 0; j < 2; j++) {
+                newV[j] = cont.bat.outOfBounds(j, spellAction.getProjectiles().get(i).hitbox, newV[j])? 0.0: newV[j];
+            }
+            spellAction.getProjectiles().get(i).setVelocity(newV);
+        }
+        spellAction.projectileLock.unlock();
     }
 
     /**
@@ -281,18 +357,25 @@ public class updater extends Thread {
      * handles user input for moving players.
      */
     private void handleMovement() {
+        cont.bat.bodiesLock.lock();
+        int i = 0;
+        
         for (AbstractPlayer player : cont.bat.players) {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
-            double x = getVelocityMag(((HumanPlayer)player).getKeyCode(Keys.Left), 
-                                        ((HumanPlayer)player).getKeyCode(Keys.Right));
+            HumanPlayer human = (HumanPlayer)player;
+            double x = getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right));
             double y = oldV[1];
-            if (cont.isKeyHeld(((HumanPlayer)player).getKeyCode(Keys.Up)) && 
+            if (cont.isKeyHeld(human.getKeyCode(Keys.Up)) && 
                 (player.getVelocity()[1] == 0)) {
                 y -= 1;
             }
             player.setVel(new Double[]{x, y});
+            if (playerColliding(true, cont.bat.players[(i++ + 1) % 2].hitbox, player)) {
+                player.setVel(new Double[]{0d, y});
+            };
         }
+        cont.bat.bodiesLock.unlock();
     }
 
     /**
@@ -312,6 +395,7 @@ public class updater extends Thread {
      */
     private void updatePositions() {
         int pIndex = 0;
+        cont.bat.bodiesLock.lock();
         for (AbstractPlayer player : cont.bat.players) {
             Integer[] oldpos = player.getPosition();
             Integer[] newPos = new Integer[]{oldpos[0], oldpos[1]};
@@ -320,6 +404,31 @@ public class updater extends Thread {
             }
             cont.bat.changePlayerPos(pIndex++, newPos);
         }
+        cont.bat.bodiesLock.unlock();
+        playerCollision();
+        updateSpellActionProjectilePositions();
+        checkFacingDirections();
+    }
+
+    private void updateSpellActionProjectilePositions() {
+        cont.bat.spellActionLock.lock();
+        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
+            updateProjectilePositions(spellAction);
+        }
+        cont.bat.spellActionLock.unlock();
+    }
+
+    private void updateProjectilePositions(AbstractSpellAction spellAction) {
+        spellAction.projectileLock.lock();
+        for (int i = 0; i < spellAction.getProjectiles().size(); i++) {
+            Integer[] oldpos = spellAction.getProjectiles().get(i).getPosition();
+            Integer[] newPos = new Integer[]{oldpos[0], oldpos[1]};
+            for (int j = 0; j < 2; j++) {
+                newPos[j] += (int)((double)timeDiff.intValue() * spellAction.getProjectiles().get(i).getVelocity()[j]);
+            }
+            spellAction.getProjectiles().get(i).setPosition(newPos);
+        }
+        spellAction.projectileLock.unlock();
     }
 
     /**

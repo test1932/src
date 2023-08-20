@@ -16,8 +16,9 @@ public class TestSpellActionFactory extends AbstractSpellActionFactory {
 
         @Override
         protected void startAction() {
+            double x = getOwner().getFacingDirection() ? -1.0 : 1.0;
             AbstractProjectile testProjectile = new Projectile_Knife(10, null, this.getOwner(), 
-                this.getOwner().getPosition(),  this.getOwner().getVelocity(), this);
+                this.getOwner().getPosition(), new Double[]{x,-0.4}, this);
             addProjectile(testProjectile);
         }
 

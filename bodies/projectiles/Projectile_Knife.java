@@ -10,6 +10,7 @@ public class Projectile_Knife extends AbstractAttackProjectile{
     public Projectile_Knife(int damage, IEffect effect, AbstractPlayer player, Integer[] pos, 
             Double[] vel, AbstractSpellAction spellAction) {
         super(damage, effect, player, pos, vel, spellAction); // effect often null
+        gravityApplies = true;
     }
 
     @Override

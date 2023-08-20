@@ -12,7 +12,6 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private Long timeRemaining;
     private IEffect effect = null;
     private AbstractPlayer owner;
-    private Shape image;
     private AbstractSpellAction spellAction;
 
     public Long lastTime;
@@ -30,7 +29,7 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
 
     public abstract void destroyProjectile();
     public abstract void updateVelocity(Long newTime);
-    public abstract void collisionEffect();
+    public abstract void collisionEffect(AbstractPlayer p);
 
     public void reduceTime(Long timeDiff) {
         timeRemaining -= timeDiff;

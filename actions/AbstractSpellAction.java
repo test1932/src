@@ -1,8 +1,9 @@
 // package
 package actions;
 
+import java.util.ArrayList;
 // standard library imports
-import java.util.LinkedList;
+import java.util.concurrent.locks.ReentrantLock;
 
 // local imports
 import bodies.projectiles.AbstractProjectile;
@@ -15,17 +16,21 @@ import bodies.characters.AbstractPlayer;
  */
 public abstract class AbstractSpellAction extends Thread{
     protected Long durationRem; //To be set in subclasses
-    private LinkedList<AbstractProjectile> projectiles = new LinkedList<AbstractProjectile>();
+    private ArrayList<AbstractProjectile> projectiles = new ArrayList<AbstractProjectile>();
     private AbstractPlayer owner;
     private long coolDown;
     private Battle bat;
+
+    public ReentrantLock projectileLock = new ReentrantLock();
 
     public AbstractSpellAction(AbstractPlayer player, long coolDown, Battle bat, long durationRem) {
         this.owner = player;
         this.coolDown = coolDown;
         this.bat = bat;
         this.durationRem = durationRem;
+        bat.spellActionLock.lock();
         bat.spellActions.add(this);
+        bat.spellActionLock.unlock();
     }
 
     public void run() {
@@ -52,41 +57,38 @@ public abstract class AbstractSpellAction extends Thread{
     
 
     public void collision(AbstractPlayer player) {
-        for (AbstractProjectile projectile : projectiles) {
-            if (projectile.collides(player.hitbox)) {
-                projectile.collisionEffect();
+        for (int i = 0; i < projectiles.size(); i++) {
+            if (projectiles.get(i).collides(player.hitbox)) {
+                projectiles.get(i).collisionEffect(player);
             }
         }
     }
 
     public abstract void updateProjectilePositions(Long curTime);
 
-    public LinkedList<AbstractProjectile> getProjectiles() {
+    public ArrayList<AbstractProjectile> getProjectiles() {
         return projectiles;
     }
 
     public void addProjectile(AbstractProjectile projectile) {
+        projectileLock.lock();
         this.projectiles.add(projectile);
-        bat.bodiesLock.lock();
-        bat.bodies.add(projectile);
-        bat.bodiesLock.unlock();
+        projectileLock.unlock();
     }
 
     public void removeProjectile(AbstractProjectile projectile) {
+        projectileLock.lock();
         this.projectiles.remove(projectile);
-        bat.bodiesLock.lock();
-        bat.bodies.remove(projectile);
-        bat.bodiesLock.unlock();
+        projectileLock.unlock();
     }
 
     public void removeAllProjectiles() {
-        for (AbstractProjectile projectile : projectiles) {
-            bat.bodiesLock.lock();
-            bat.bodies.remove(projectile);
-            bat.bodiesLock.unlock();
-        }
+        bat.spellActionLock.lock();
         this.bat.spellActions.remove(this);
+        bat.spellActionLock.unlock();
+        projectileLock.lock();
         this.projectiles = null;
+        projectileLock.unlock();
     }
 
     public AbstractPlayer getOwner() {

@@ -3,9 +3,8 @@ package game.model;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
@@ -22,15 +21,16 @@ public class Battle {
         = {new HumanPlayer(true, null), 
            new HumanPlayer(false, null)};
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
-    public LinkedList<AbstractSpellAction> spellActions = new LinkedList<AbstractSpellAction>();
+    public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
 
     public AbstractPhysicalBody[] walls;
     public ReentrantLock bodiesLock = new ReentrantLock();
+    public ReentrantLock spellActionLock = new ReentrantLock();
 
     public final int X = 100;
     public final int Y = 50;
-    public final int WIDTH = 800;
-    public final int HEIGHT = 500;
+    public final int WIDTH = 750;
+    public final int HEIGHT = 450;
 
     private Game game;
 
@@ -57,8 +57,12 @@ public class Battle {
     }
 
     public void changePlayerPos(int playerIndex, Integer[] newPos) {
-        players[playerIndex].setPos(newPos);
+        players[playerIndex].setPosition(newPos);
         game.notifyObservers();
+    }
+
+    public AbstractPlayer otherPlayer(AbstractPlayer player) {
+        return players[0] == player ? players[1] : players[0];
     }
 
     public Boolean outOfBounds(int isX, Shape s, Double d) {

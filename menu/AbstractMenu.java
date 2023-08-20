@@ -1,5 +1,7 @@
 package menu;
 
+import java.awt.image.BufferedImage;
+
 import game.Game;
 
 public abstract class AbstractMenu {
@@ -9,6 +11,7 @@ public abstract class AbstractMenu {
     protected Game game;
     private String menuName;
     private AbstractMenu prevMenu;
+    private BufferedImage background;
 
     public AbstractMenu(Game game, String menuName, AbstractMenu prevMenu) {
         this.game = game;
@@ -60,5 +63,13 @@ public abstract class AbstractMenu {
 
     public AbstractOption getSelected() {
         return options[selectedIndex];
+    }
+
+    public BufferedImage getBackground() {
+        return background;
+    }
+
+    public void setBackground(BufferedImage background) {
+        this.background = background;
     }
 }

@@ -13,9 +13,9 @@ public abstract class AbstractAttackProjectile extends AbstractProjectile {
         this.damage = damage;
     }
 
-    public void collisionEffect() {
-        AbstractPlayer p = this.getOwner();
+    public void collisionEffect(AbstractPlayer p) {
         p.setHealth(p.getHealth() - damage);
         if (this.getEffect() != null) p.applyNewEffect(this.getEffect());
+        this.getSpellAction().removeProjectile(this);
     }
 }

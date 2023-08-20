@@ -10,11 +10,10 @@ import effects.IEffect;
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private final int LEFT_X = 120;
     private final int RIGHT_X = 700;
-    private final int MAX_HEALTH = 1000;
+    public final int MAX_HEALTH = 1000;
 
     protected Double speedMultiplier = 1.0;
     protected int health = MAX_HEALTH;
-    private Rectangle image;
     private Boolean facingLeft;
     private List<IEffect> effects = new LinkedList<IEffect>();
     private boolean isLeft;
@@ -25,19 +24,13 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         int x;
         this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
-        setPosition(new Integer[]{x,500});
+        setPosition(new Integer[]{x,300});
 
-        this.image = new Rectangle(x, 200, 20, 50);
-        this.hitbox = this.image;
+        this.hitbox = new Rectangle(x, 200, 20, 50);
+        this.image = this.hitbox;
         this.character = character;
         this.facingLeft = !isLeft;
         gravityApplies = true;
-    }
-
-    public void setPos(Integer[] newPos) {
-        setPosition(newPos);
-        image.x = newPos[0];
-        image.y = newPos[1];
     }
 
     public void setVel(Double[] velocity) {
@@ -93,5 +86,9 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public boolean isLeft() {
         return isLeft;
+    }
+
+    public void setFacingLeft(Boolean facingLeft) {
+        this.facingLeft = facingLeft;
     }
 }
