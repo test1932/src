@@ -1,6 +1,10 @@
 package menu;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import game.Game;
 
@@ -18,6 +22,20 @@ public abstract class AbstractMenu {
         this.selectedIndex = 0;
         this.menuName = menuName;
         this.prevMenu = prevMenu;
+    }
+
+    
+    public AbstractMenu(Game game, String menuName, AbstractMenu prevMenu, String imagePath) {
+        this.game = game;
+        this.selectedIndex = 0;
+        this.menuName = menuName;
+        this.prevMenu = prevMenu;
+
+        try {
+            setBackground(ImageIO.read(new File(imagePath)));
+        } catch (IOException e) {
+            System.err.println("failed to get image");
+        }
     }
 
     public abstract void animateSelectionChange();

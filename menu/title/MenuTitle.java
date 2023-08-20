@@ -1,10 +1,5 @@
 package menu.title;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
 import game.Game;
 import menu.AbstractMenu;
 import menu.AbstractOption;
@@ -13,7 +8,7 @@ import menu.settings.OptionExit;
 public class MenuTitle extends AbstractMenu {
 
     public MenuTitle(Game game, AbstractMenu prevMenu) {
-        super(game, "Title", prevMenu);
+        super(game, "Title", prevMenu, "assets/tempBackground.jpg");
         options = new AbstractOption[]{
             new OptionStory(game, this),
             new OptionArcade(game, this),
@@ -22,12 +17,6 @@ public class MenuTitle extends AbstractMenu {
             new OptionSettings(game, this),
             new OptionExit(game, this)
         };
-
-        try {
-            setBackground(ImageIO.read(new File("assets/tempBackground.jpg")));
-        } catch (IOException e) {
-            System.err.println("failed to get image");
-        }
     }
 
     @Override

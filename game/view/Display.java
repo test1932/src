@@ -6,7 +6,7 @@ import actions.AbstractSpellAction;
 import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
-import game.model.Battle;
+import game.model.scenario.Battle;
 import game.model.Controller;
 
 import java.awt.BasicStroke;
@@ -40,6 +40,11 @@ public class Display extends JFrame implements Observer {
         new ProgressBar(true, WIDTH - 300 - 50, 50, 300, 20)
     };
 
+    private SegmentedProgressBar[] manaBars = new SegmentedProgressBar[] {
+        new SegmentedProgressBar(false, 200, HEIGHT - 30, 200, 20, 1.0, 5),
+        new SegmentedProgressBar(true, WIDTH - 200 - 200, HEIGHT - 30, 200, 20, 1.0, 5)
+    };
+
     private Line2D.Double underline 
         = new Line2D.Double(OPTION_MIN_X, OPTION_MIN_Y, OPTION_MIN_X + 50, OPTION_MIN_Y);
 
@@ -48,10 +53,22 @@ public class Display extends JFrame implements Observer {
         this.cont = c;
         addKeyListener(new GameKeyListener(this, cont));
         setup();
+        setupHealthBars();
+        setupManaBars();
+    }
+
+    private void setupHealthBars() {
         healthBars[0].setFillColour(Color.CYAN);
         healthBars[0].setOutlineColour(Color.BLUE);
         healthBars[1].setFillColour(Color.CYAN);
         healthBars[1].setOutlineColour(Color.BLUE);
+    }
+
+    private void setupManaBars() {
+        manaBars[0].setFillColour(Color.CYAN);
+        manaBars[0].setOutlineColour(Color.BLUE);
+        manaBars[1].setFillColour(Color.CYAN);
+        manaBars[1].setOutlineColour(Color.BLUE);
     }
 
     @Override
@@ -95,9 +112,21 @@ public class Display extends JFrame implements Observer {
     }
 
     private void paintStats(Graphics2D g2D) {
+        paintHealthBars(g2D);
+        paintManaBars(g2D);
+    }
+
+    private void paintHealthBars(Graphics2D g2D) {
         for (int i = 0; i < healthBars.length; i++) {
             healthBars[i].setProgress((double)b.players[i].getHealth() / (double)b.players[i].MAX_HEALTH);
             healthBars[i].paintProgress(g2D);
+        }
+    }
+
+    private void paintManaBars(Graphics2D g2D) {
+        for (int i = 0; i < manaBars.length; i++) {
+            manaBars[i].setProgress((double)b.players[i].getCurMana() / (double)b.players[i].MAX_MANA);
+            manaBars[i].paintProgress(g2D);
         }
     }
 

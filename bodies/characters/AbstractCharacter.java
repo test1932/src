@@ -3,7 +3,7 @@ package bodies.characters;
 import java.util.ArrayList;
 
 import actions.AbstractSpellActionFactory;
-import game.model.Battle;
+import game.model.scenario.Battle;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {

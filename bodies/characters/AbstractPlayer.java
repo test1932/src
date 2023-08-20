@@ -3,20 +3,30 @@ package bodies.characters;
 import java.awt.Rectangle;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
+import actions.spellcard.AbstractSpellcard;
 import bodies.AbstractPhysicalBody;
 import effects.IEffect;
 
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
-    private final int LEFT_X = 120;
-    private final int RIGHT_X = 700;
-    public final int MAX_HEALTH = 1000;
+    private static final int LEFT_X = 120;
+    private static final int RIGHT_X = 700;
+    public static final int MAX_HEALTH = 1000;
+    public static final int MAX_MANA = 10000;
+    public static final int MANA_SEGMENTS = 5;
 
     protected Double speedMultiplier = 1.0;
     protected int health = MAX_HEALTH;
+    protected AbstractSpellcard[] hand = new AbstractSpellcard[5];
+
     private Boolean facingLeft;
     private List<IEffect> effects = new LinkedList<IEffect>();
     private boolean isLeft;
+    private int curMana = MAX_MANA;
+    private boolean isManaBlocked = false;
+
+    private ReentrantLock manaLock = new ReentrantLock();
 
     public AbstractCharacter character;
 
@@ -90,5 +100,43 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public void setFacingLeft(Boolean facingLeft) {
         this.facingLeft = facingLeft;
+    }
+
+    public int getCurMana() {
+        return curMana;
+    }
+
+    public void setCurMana(int curMana) {
+        manaLock.lock();
+        this.curMana = curMana;
+        manaLock.unlock();
+    }
+
+    public void decrementCurMana(int decrement) {
+        manaLock.lock();
+        this.curMana = Math.max(Math.min(curMana - decrement, MAX_MANA), 0);
+        manaLock.unlock();
+    }
+
+    public void incrementCurMana(int increment) {
+        decrementCurMana(-increment);
+    }
+
+    public boolean isManaBlocked() {
+        return isManaBlocked;
+    }
+
+    public void setManaBlocked(boolean isManaBlocked) {
+        manaLock.lock();
+        this.isManaBlocked = isManaBlocked;
+        manaLock.unlock();
+    }
+
+    public AbstractSpellcard[] getHand() {
+        return hand;
+    }
+
+    public void setHand(AbstractSpellcard[] hand) {
+        this.hand = hand;
     }
 }

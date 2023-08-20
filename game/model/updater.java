@@ -17,7 +17,6 @@ import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
-import bodies.projectiles.AbstractProjectile;
 import menu.settings.config.KeyOption;
 
 public class updater extends Thread {
@@ -161,6 +160,20 @@ public class updater extends Thread {
     private void runBattle() {
         progressMotion();
         handlePause();
+        progressBattle();
+    }
+
+    private void progressBattle() {
+        handleSpellActions();
+        incrementMana();
+    }
+
+    private void incrementMana() {
+        cont.bat.bodiesLock.lock();
+        for (AbstractPlayer player : cont.bat.players) {
+            if (!player.isManaBlocked()) player.incrementCurMana(10);
+        }
+        cont.bat.bodiesLock.unlock();
     }
 
     /**
@@ -182,7 +195,6 @@ public class updater extends Thread {
         updateVelocity();
         updatePositions();
         removeOldRecent();
-        handleSpellActions();
     }
 
     private void checkFacingDirections() {
@@ -252,8 +264,9 @@ public class updater extends Thread {
     private void interpretKeyPresses(HumanPlayer player) {
         Combo[] playerKeys = interpretPlayerKeyPresses(player);
         AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
-        if (spellAction != null) {
+        if (spellAction != null && player.getCurMana() >= AbstractPlayer.MAX_MANA / AbstractPlayer.MANA_SEGMENTS) {
             player.character.resetTimeout(spellAction.getCoolDown());
+            player.decrementCurMana((int)((double)AbstractPlayer.MAX_MANA / (double)AbstractPlayer.MANA_SEGMENTS));
             spellAction.start();
         }
     }

@@ -1,4 +1,4 @@
-package game.model;
+package game.model.scenario;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -34,6 +34,7 @@ public class Battle {
 
     private Game game;
 
+    private Battle nextBattle = null;
 
     public Battle() {
         players[0].character = new Sakuya(players[0], this);
@@ -88,5 +89,13 @@ public class Battle {
 
     public void setGame(Game game) {
         this.game = game;
+    }
+
+    public Battle getNextBattle() {
+        return nextBattle;
+    }
+
+    public void setNextBattle(Battle nextBattle) {
+        this.nextBattle = nextBattle;
     }
 }

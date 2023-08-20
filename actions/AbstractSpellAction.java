@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // local imports
 import bodies.projectiles.AbstractProjectile;
-import game.model.Battle;
+import game.model.scenario.Battle;
 import bodies.characters.AbstractPlayer;
 
 /**
@@ -20,6 +20,7 @@ public abstract class AbstractSpellAction extends Thread{
     private AbstractPlayer owner;
     private long coolDown;
     private Battle bat;
+    protected long castTime = 0l;
 
     public ReentrantLock projectileLock = new ReentrantLock();
 
@@ -34,7 +35,9 @@ public abstract class AbstractSpellAction extends Thread{
     }
 
     public void run() {
+        handleManaBlocking();
         startAction();
+
         long lastTime = System.currentTimeMillis();
         long timeDiff;
         while (durationRem > 0) {
@@ -48,7 +51,18 @@ public abstract class AbstractSpellAction extends Thread{
                 System.err.println("failed to sleep spell Action");
             }
         }
+        
         endAction();
+    }
+
+    private void handleManaBlocking() {
+        owner.setManaBlocked(true);
+        try {
+            Thread.sleep(castTime);
+        } catch (InterruptedException e) {
+            System.err.println("cast time thread failed to sleep");
+        }
+        owner.setManaBlocked(false);
     }
 
     protected abstract void startAction();

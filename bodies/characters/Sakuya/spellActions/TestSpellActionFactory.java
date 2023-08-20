@@ -5,13 +5,14 @@ import actions.AbstractSpellActionFactory;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
 import bodies.projectiles.Projectile_Knife;
-import game.model.Battle;
+import game.model.scenario.Battle;
 
 public class TestSpellActionFactory extends AbstractSpellActionFactory {
     public class TestSpellAction extends AbstractSpellAction {
 
         public TestSpellAction(AbstractPlayer player, Battle bat) {
             super(player, 300l, bat, 1000);
+            castTime = 0l;
         }
 
         @Override

@@ -3,7 +3,7 @@ package bodies.characters.Sakuya;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
-import game.model.Battle;
+import game.model.scenario.Battle;
 
 public class Sakuya extends AbstractCharacter {
     public Sakuya(AbstractPlayer player, Battle bat) {

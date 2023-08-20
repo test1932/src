@@ -8,10 +8,11 @@ import game.Game;
 import menu.AbstractMenu;
 import menu.AbstractOption;
 import menu.OptionBack;
+import game.model.scenario.Battle;
 
 public class MenuSettings extends AbstractMenu{
     public MenuSettings(Game game, AbstractMenu prevMenu) {
-        super(game, "Settings", prevMenu);
+        super(game, "Settings", prevMenu, "assets/settings.png");
         LinkedList<HumanPlayer> humans = getHumans();
         options = new AbstractOption[1 + humans.size()];
 

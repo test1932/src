@@ -5,11 +5,11 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 public class ProgressBar extends Rectangle {
-    private double progress;
-    private Rectangle progressFill;
-    private boolean isReversed;
-    private Color fillColour;
-    private Color outlineColour;
+    protected double progress;
+    protected Rectangle progressFill;
+    protected boolean isReversed;
+    protected Color fillColour;
+    protected Color outlineColour;
 
     public ProgressBar(boolean isReversed, int x, int y, int width, int height) {
         super(x, y, width, height);

@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // local imports
 import game.Game;
+import game.model.scenario.Battle;
 
 /**
  * @author: ~Yukarin~ <3

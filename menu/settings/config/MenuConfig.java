@@ -9,7 +9,7 @@ import menu.OptionBack;
 
 public class MenuConfig extends AbstractMenu {
     public MenuConfig(Game game, AbstractMenu prevMenu, HumanPlayer player) {
-        super(game, "Config", prevMenu);
+        super(game, "Config", prevMenu, "assets/config.jpg");
         options = new AbstractOption[9];
         Keys[] keyArr =  Keys.values();
 

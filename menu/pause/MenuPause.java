@@ -7,7 +7,7 @@ import menu.AbstractOption;
 public class MenuPause extends AbstractMenu {
 
     public MenuPause(Game game, AbstractMenu prevMenu) {
-        super(game, "Pause", prevMenu);
+        super(game, "Pause", prevMenu, "assets/tempPause.png");
         options = new AbstractOption[]{
             new OptionResume(game, this),
             new OptionTitle(game, this)
