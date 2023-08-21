@@ -71,7 +71,6 @@ public class Battle {
 
     public void changePlayerPos(int playerIndex, Integer[] newPos) {
         this.cont.players[playerIndex].setPosition(newPos);
-        this.cont.game.notifyObservers();
     }
 
     public Boolean outOfBounds(int isX, Shape s, Double d) {

@@ -1,25 +1,36 @@
 package game.model.scenario;
 
 public abstract class AbstractScenario {
+    public enum ScenarioState{PRE_BATTLE, BATTLE, POST_BATTLE};
+
     // dialogue for before and after the battle
-    private AbstractDialogue preBattle;
-    private AbstractDialogue postBattle;
+    protected Dialogue preBattle;
+    protected Dialogue postBattle;
     private Battle battle;
     private AbstractScenario nextScenario;
+    private ScenarioState curScenarioState = ScenarioState.PRE_BATTLE;
 
-    public AbstractScenario(Battle battle, AbstractDialogue preBattle, 
-            AbstractDialogue postBattle, AbstractScenario nextScenario) {
-        this.preBattle = preBattle;
-        this.postBattle = postBattle;
+    public AbstractScenario(Battle battle, AbstractScenario nextScenario) {
         this.battle = battle;
         this.nextScenario = nextScenario;
     }
 
-    public AbstractDialogue getNextDialogue() {
+    public boolean nextDialogue() {
         if (battle.isOver()) {
-            return preBattle.getNext();
+            // System.out.println(postBattle);
+            postBattle = postBattle.getNext();
+            return postBattle == null;
         }
-        return postBattle.getNext();
+        preBattle = preBattle.getNext();
+        if (preBattle == null) curScenarioState = ScenarioState.BATTLE;
+        return preBattle == null;
+    }
+
+    public Dialogue getDialogue() {
+        if (curScenarioState == ScenarioState.PRE_BATTLE) {
+            return preBattle;
+        }
+        return postBattle;
     }
 
     public AbstractScenario getNextScenario() {
@@ -32,5 +43,16 @@ public abstract class AbstractScenario {
 
     public Battle getBattle() {
         return battle;
+    }
+
+    public ScenarioState getCurScenarioState() {
+        return curScenarioState;
+    }
+
+    public void checkIfBattleOver() {
+        battle.checkIfOver();
+        if (battle.isOver()) {
+            curScenarioState = ScenarioState.POST_BATTLE;
+        }
     }
 }

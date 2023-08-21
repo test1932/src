@@ -7,6 +7,7 @@ import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
 import game.model.Controller;
+import game.model.scenario.Dialogue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -68,6 +69,15 @@ public class Display extends JFrame implements Observer {
         manaBars[1].setOutlineColour(Color.BLUE);
     }
 
+    private void paintDialogue(Graphics2D g2D, Dialogue dialogue) {
+        Color tempColor = g2D.getColor();
+        g2D.setColor(Color.BLACK);
+        g2D.drawString(dialogue.getTextLine1(), Dialogue.TEXT_X, Dialogue.LINE_1_TEXT_Y);
+        g2D.drawString(dialogue.getTextLine2(), Dialogue.TEXT_X, Dialogue.LINE_2_TEXT_Y);
+        // g2D.drawImage(dialogue.getSprite(), dialogue.isLeft() ? Dialogue.LEFT_X : WIDTH - Dialogue.WIDTH, 50, WIDTH, HEIGHT, this);
+        g2D.setColor(tempColor);
+    }
+
     @Override
     public void paint(Graphics g) {
         redraw();
@@ -92,13 +102,26 @@ public class Display extends JFrame implements Observer {
                 paintMenu(g2D); break;
             case Playing:
                 g2D.setColor(Color.WHITE);
-                paintBattle(g2D); break;
+                paintScenario(g2D); break;
         }
     }
 
     public void setThickness(Graphics2D g2D, float strokeWidth) {
         BasicStroke stroke = new BasicStroke(strokeWidth);
         g2D.setStroke(stroke);
+    }
+
+    public void paintScenario(Graphics2D g2D) {
+        // System.out.println(cont.getScenario().getCurScenarioState());
+        switch (cont.getScenario().getCurScenarioState()) {
+            case BATTLE:
+                paintBattle(g2D);
+                break;
+            default:
+                paintBattle(g2D);
+                paintDialogue(g2D, cont.getScenario().getDialogue());
+                break;
+        }
     }
 
     public void paintBattle(Graphics2D g2D) {

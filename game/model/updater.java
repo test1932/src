@@ -10,6 +10,7 @@ import actions.AbstractSpellAction;
 import actions.AbstractSpellActionFactory;
 import game.Game;
 import game.Game.GameState;
+import game.model.scenario.AbstractScenario.ScenarioState;
 import menu.pause.MenuPause;
 
 import bodies.AbstractPhysicalBody;
@@ -77,6 +78,7 @@ public class updater extends Thread {
         timeDiff = System.currentTimeMillis() - lastTime;
         lastTime = System.currentTimeMillis();
         handleGameState();
+        gameModel.notifyObservers();
     }
 
     /**
@@ -85,7 +87,7 @@ public class updater extends Thread {
     private void handleGameState() {
         switch (cont.game.gameState) {
             case Playing:
-                runBattle();
+                runScenario();
                 break;
             case Menu:
                 runMenu();
@@ -157,6 +159,33 @@ public class updater extends Thread {
     /**
      * progresses the state of the battle
      */
+    private void runScenario() {
+        switch(cont.getScenario().getCurScenarioState()) {
+            case BATTLE:
+                runBattle();
+                break;
+            case PRE_BATTLE:
+                handlePreDialogue();
+                outOfBattleMotion();
+                break;
+            case POST_BATTLE:
+                handlePostDialogue();
+                outOfBattleMotion();
+                break;
+        }
+    }
+
+    private void outOfBattleMotion() {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
+            player.setVel(new Double[]{0d, player.getVelocity()[1]});
+        }
+        cont.getBattle().bodiesLock.unlock();
+        updateVelocity();
+        updatePositions();
+    }
+    
+    
     private void runBattle() {
         progressMotion();
         handlePause();
@@ -164,9 +193,38 @@ public class updater extends Thread {
         checkIfBattleOver();
     }
 
+    private void handlePostDialogue() {
+        if (keyPressTimout <= 0) {
+            // z
+            if (cont.isKeyHeld(90)) {
+                keyPressTimout = KEY_PRESS_TIMEOUT;
+                if (cont.getScenario().nextDialogue()) {
+                    //TODO handle last scenario
+                    cont.setScenario(cont.getScenario().getNextScenario());
+                }
+            }
+        }
+        else {
+            keyPressTimout -= timeDiff;
+        }
+    }
+
+    private void handlePreDialogue() {
+        if (keyPressTimout <= 0) {
+            // z
+            if (cont.isKeyHeld(90)) {
+                keyPressTimout = KEY_PRESS_TIMEOUT;
+                cont.getScenario().nextDialogue();
+            }
+        }
+        else {
+            keyPressTimout -= timeDiff;
+        }
+    }
+
     private void checkIfBattleOver() {
-        cont.getBattle().checkIfOver();
-        if (cont.getBattle().isOver()) System.out.println("battle is over");
+        cont.getScenario().checkIfBattleOver();
+        if (cont.getScenario().getBattle().isOver()) System.out.println("battle is over");
     }
 
     private void progressBattle() {

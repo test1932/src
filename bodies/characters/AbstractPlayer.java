@@ -41,7 +41,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         x = isLeft? LEFT_X:RIGHT_X;
         setPosition(new Integer[]{x,300});
 
-        this.hitbox = new Rectangle(x, 200, 20, 50);
+        this.hitbox = new Rectangle(x, 350, 30, 80);
         this.image = this.hitbox;
         this.facingLeft = !isLeft;
         gravityApplies = true;
