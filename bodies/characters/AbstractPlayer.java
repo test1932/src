@@ -1,10 +1,12 @@
 package bodies.characters;
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import actions.AbstractSpellAction;
 import actions.spellcard.AbstractSpellcard;
 import bodies.AbstractPhysicalBody;
 import effects.IEffect;
@@ -22,15 +24,18 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     private Boolean facingLeft;
     private List<IEffect> effects = new LinkedList<IEffect>();
+    public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
+
     private boolean isLeft;
     private int curMana = MAX_MANA;
     private boolean isManaBlocked = false;
 
     private ReentrantLock manaLock = new ReentrantLock();
+    public ReentrantLock spellActionLock = new ReentrantLock();
 
-    public AbstractCharacter character;
+    protected AbstractCharacter character;
 
-    public AbstractPlayer (Boolean isLeft, AbstractCharacter character) {
+    public AbstractPlayer (Boolean isLeft) {
         int x;
         this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
@@ -38,7 +43,6 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
         this.hitbox = new Rectangle(x, 200, 20, 50);
         this.image = this.hitbox;
-        this.character = character;
         this.facingLeft = !isLeft;
         gravityApplies = true;
     }
@@ -138,5 +142,13 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public void setHand(AbstractSpellcard[] hand) {
         this.hand = hand;
+    }
+
+    public AbstractCharacter getCharacter() {
+        return character;
+    }
+
+    public void setCharacter(AbstractCharacter character) {
+        this.character = character;
     }
 }

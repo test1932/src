@@ -3,7 +3,7 @@ package bodies.characters;
 import java.util.ArrayList;
 
 import actions.AbstractSpellActionFactory;
-import game.model.scenario.Battle;
+import actions.spellcard.AbstractSpellcard;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {
@@ -15,6 +15,9 @@ public abstract class AbstractCharacter {
     private Pair<Combo[],AbstractSpellActionFactory> makePair(Combo[] keys, AbstractSpellActionFactory combo) {
         return new Pair<Combo[],AbstractSpellActionFactory>(keys, combo);
     }
+
+    protected AbstractSpellcard[] deck = new AbstractSpellcard[20];
+    protected ArrayList<AbstractSpellcard> library = new ArrayList<AbstractSpellcard>();
 
     public void setup() {
         // appending to end
@@ -53,19 +56,23 @@ public abstract class AbstractCharacter {
     }
 
     private AbstractPlayer player;
-    protected long timeout;
-    protected Battle bat;
+    private String name;
 
+    protected long timeout;
     protected int meleeCombo = 3;
 
-    public AbstractCharacter(AbstractPlayer player, Battle bat) {
+    public AbstractCharacter(AbstractPlayer player, String name) {
         setup();
         this.player = player;
-        this.bat = bat;
+        this.name = name;
     }
 
     public AbstractPlayer getPlayer() {
         return player;
+    }
+
+    public void setPlayer(AbstractPlayer player) {
+        this.player = player;
     }
 
     public void resetTimeout(long timeDiff) {
@@ -82,5 +89,21 @@ public abstract class AbstractCharacter {
 
     public void setTimeout(long timeout) {
         this.timeout = timeout;
+    }
+
+    public AbstractSpellcard[] getDeck() {
+        return deck;
+    }
+
+    public void setDeck(AbstractSpellcard[] deck) {
+        this.deck = deck;
+    }
+
+    public void replaceCard(AbstractSpellcard card, int index) {
+        this.deck[index] = card;
+    }
+
+    public String getName() {
+        return name;
     }
 }

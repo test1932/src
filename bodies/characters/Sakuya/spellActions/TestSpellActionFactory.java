@@ -5,20 +5,19 @@ import actions.AbstractSpellActionFactory;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
 import bodies.projectiles.Projectile_Knife;
-import game.model.scenario.Battle;
 
 public class TestSpellActionFactory extends AbstractSpellActionFactory {
     public class TestSpellAction extends AbstractSpellAction {
 
-        public TestSpellAction(AbstractPlayer player, Battle bat) {
-            super(player, 300l, bat, 1000);
+        public TestSpellAction(AbstractPlayer player) {
+            super(player, 300l, 1000);
             castTime = 0l;
         }
 
         @Override
         protected void startAction() {
             double x = getOwner().getFacingDirection() ? -1.0 : 1.0;
-            AbstractProjectile testProjectile = new Projectile_Knife(10, null, this.getOwner(), 
+            AbstractProjectile testProjectile = new Projectile_Knife(100, null, this.getOwner(), 
                 this.getOwner().getPosition(), new Double[]{x,-0.4}, this);
             addProjectile(testProjectile);
         }
@@ -36,15 +35,13 @@ public class TestSpellActionFactory extends AbstractSpellActionFactory {
     }
 
     private AbstractPlayer player;
-    private Battle bat;
 
-    public TestSpellActionFactory(AbstractPlayer player, Battle bat) {
+    public TestSpellActionFactory(AbstractPlayer player) {
         this.player = player;
-        this.bat = bat;
     }
 
     @Override
     public AbstractSpellAction newSpell() {
-        return new TestSpellAction(player, bat);
+        return new TestSpellAction(player);
     }
 }

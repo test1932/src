@@ -3,50 +3,62 @@ package game.model.scenario;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
-import java.util.ArrayList;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
-import actions.AbstractSpellAction;
-import bodies.characters.HumanPlayer;
+import javax.imageio.ImageIO;
+
 import bodies.characters.Sakuya.Sakuya;
-import bodies.characters.AbstractPlayer;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
-import game.Game;
+import game.model.Controller;
 
 public class Battle {
     public Rectangle bounds;
-    public AbstractPlayer[] players 
-        = {new HumanPlayer(true, null), 
-           new HumanPlayer(false, null)};
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
-    public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
+    protected String path = "assets/images/backgrounds/battle1.png";
+    public BufferedImage background;
 
     public AbstractPhysicalBody[] walls;
     public ReentrantLock bodiesLock = new ReentrantLock();
-    public ReentrantLock spellActionLock = new ReentrantLock();
 
-    public final int X = 100;
+    public final int X = 0;
     public final int Y = 50;
-    public final int WIDTH = 750;
+    public final int WIDTH = 960;
     public final int HEIGHT = 450;
 
-    private Game game;
-
+    private Controller cont;
+    private boolean isOver = false;
     private Battle nextBattle = null;
 
-    public Battle() {
-        players[0].character = new Sakuya(players[0], this);
-        players[1].character = new Sakuya(players[1], this);
+    public Battle(Controller cont) {
+        this.cont = cont;
+        this.cont.players[1].setCharacter(new Sakuya(this.cont.players[1]));
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
 
-        for (AbstractPhysicalBody physicalBodyA : players) {
+        for (AbstractPhysicalBody physicalBodyA : this.cont.players) {
             bodiesLock.lock();
             bodies.add(physicalBodyA);
             bodiesLock.unlock();
         }
+
+        setBackground();
+    }
+
+    public void setBackground() {
+        try {
+            this.background = ImageIO.read(new File(path));
+        } catch (IOException e) {
+            System.err.println("failed to get image");
+        }
+    }
+
+    public BufferedImage getBackground() {
+        return background;
     }
 
     private void setupWalls() {
@@ -58,12 +70,8 @@ public class Battle {
     }
 
     public void changePlayerPos(int playerIndex, Integer[] newPos) {
-        players[playerIndex].setPosition(newPos);
-        game.notifyObservers();
-    }
-
-    public AbstractPlayer otherPlayer(AbstractPlayer player) {
-        return players[0] == player ? players[1] : players[0];
+        this.cont.players[playerIndex].setPosition(newPos);
+        this.cont.game.notifyObservers();
     }
 
     public Boolean outOfBounds(int isX, Shape s, Double d) {
@@ -87,15 +95,23 @@ public class Battle {
         return areaA.equals(new Area(s));
     }
 
-    public void setGame(Game game) {
-        this.game = game;
-    }
-
     public Battle getNextBattle() {
         return nextBattle;
     }
 
     public void setNextBattle(Battle nextBattle) {
         this.nextBattle = nextBattle;
+    }
+
+    public boolean isOver() {
+        return isOver;
+    }
+
+    public void setOver(boolean isOver) {
+        this.isOver = isOver;
+    }
+
+    public void checkIfOver() {
+        this.isOver = cont.players[0].getHealth() <= 0 || cont.players[1].getHealth() <= 0;
     }
 }

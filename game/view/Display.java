@@ -6,7 +6,6 @@ import actions.AbstractSpellAction;
 import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
-import game.model.scenario.Battle;
 import game.model.Controller;
 
 import java.awt.BasicStroke;
@@ -23,17 +22,16 @@ import menu.AbstractOption;
 import menu.settings.config.KeyOption;
 
 public class Display extends JFrame implements Observer {
-    private Battle b;
     private Controller cont;
     private BufferedImage backBuffer;
 
     private Font mainFont = new Font("sansserif", Font.PLAIN, 20);
-    private Rectangle menuArea = new Rectangle(50, 50, 250, 450);
+    private Rectangle menuArea = new Rectangle(50, 50, 300, 450);
 
     private final int OPTION_MIN_X = 75;
     private final int OPTION_MIN_Y = 200;
-    private final int WIDTH = 960;
-    private final int HEIGHT = 540;
+    public static final int WIDTH = 960;
+    public static final int HEIGHT = 540;
 
     private ProgressBar[] healthBars = new ProgressBar[]{
         new ProgressBar(false, 50, 50, 300, 20),
@@ -41,16 +39,15 @@ public class Display extends JFrame implements Observer {
     };
 
     private SegmentedProgressBar[] manaBars = new SegmentedProgressBar[] {
-        new SegmentedProgressBar(false, 200, HEIGHT - 30, 200, 20, 1.0, 5),
-        new SegmentedProgressBar(true, WIDTH - 200 - 200, HEIGHT - 30, 200, 20, 1.0, 5)
+        new SegmentedProgressBar(false, 200, HEIGHT - 30, 200, 20, 5),
+        new SegmentedProgressBar(true, WIDTH - 200 - 200, HEIGHT - 30, 200, 20, 5)
     };
 
     private Line2D.Double underline 
         = new Line2D.Double(OPTION_MIN_X, OPTION_MIN_Y, OPTION_MIN_X + 50, OPTION_MIN_Y);
 
-    public Display(Battle b, Controller c) {
-        this.b = b;
-        this.cont = c;
+    public Display(Controller cont) {
+        this.cont = cont;
         addKeyListener(new GameKeyListener(this, cont));
         setup();
         setupHealthBars();
@@ -105,10 +102,12 @@ public class Display extends JFrame implements Observer {
     }
 
     public void paintBattle(Graphics2D g2D) {
-        paintWalls(g2D); // paint walls
+        // paintWalls(g2D); // paint walls
+        g2D.drawImage(cont.getBattle().getBackground(), 0, 0, WIDTH, HEIGHT, this);
         paintPlayers(g2D); // paint players
         paintProjectiles(g2D); // paints projectiles
         paintStats(g2D);
+
     }
 
     private void paintStats(Graphics2D g2D) {
@@ -118,47 +117,53 @@ public class Display extends JFrame implements Observer {
 
     private void paintHealthBars(Graphics2D g2D) {
         for (int i = 0; i < healthBars.length; i++) {
-            healthBars[i].setProgress((double)b.players[i].getHealth() / (double)b.players[i].MAX_HEALTH);
+            healthBars[i].setProgress((double)cont.players[i].getHealth() / (double)AbstractPlayer.MAX_HEALTH);
             healthBars[i].paintProgress(g2D);
         }
     }
 
     private void paintManaBars(Graphics2D g2D) {
         for (int i = 0; i < manaBars.length; i++) {
-            manaBars[i].setProgress((double)b.players[i].getCurMana() / (double)b.players[i].MAX_MANA);
+            manaBars[i].setProgress((double)cont.players[i].getCurMana() / (double)AbstractPlayer.MAX_MANA);
             manaBars[i].paintProgress(g2D);
         }
     }
 
     private void paintWalls(Graphics2D g2D) {
-        g2D.draw(this.b.bounds);
-        for (AbstractPhysicalBody wall : b.walls) {
+        g2D.draw(this.cont.getBattle().bounds);
+        for (AbstractPhysicalBody wall : cont.getBattle().walls) {
             g2D.draw(wall.hitbox);
         }
     }
 
     private void paintPlayers(Graphics2D g2D) {
-        for (AbstractPlayer player : this.b.players) {
+        for (AbstractPlayer player : this.cont.players) {
             g2D.draw(player.getImage());   
         }
     }
 
     private void paintProjectiles(Graphics2D g2D) {
-        cont.bat.spellActionLock.lock();
-        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
+        for (AbstractPlayer player : cont.players) {
+            paintPlayerProjectiles(g2D, player);
+        }
+    }
+
+    private void paintPlayerProjectiles(Graphics2D g2D, AbstractPlayer player) {
+        player.spellActionLock.lock();
+        for (AbstractSpellAction spellAction : player.spellActions) {
             spellAction.projectileLock.lock();
             for (AbstractProjectile projectile : spellAction.getProjectiles()) {
                 g2D.draw(projectile.getImage());
             }
             spellAction.projectileLock.unlock();
         }
-        cont.bat.spellActionLock.unlock();
+        player.spellActionLock.unlock();
     }
 
     public void paintMenu(Graphics2D g2D) {
         g2D.drawImage(cont.game.getCurMenu().getBackground(), 0, 0, WIDTH, HEIGHT, this);
         Color temp = g2D.getColor();
-        g2D.setColor(new Color(200, 200, 200, 100));
+        g2D.setColor(new Color(200, 200, 200, 150));
         g2D.fill(menuArea);
         g2D.setColor(temp);
         g2D.drawString("This is the " + cont.game.getCurMenu().getMenuName() + " menu", OPTION_MIN_X, 100);

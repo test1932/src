@@ -161,6 +161,12 @@ public class updater extends Thread {
         progressMotion();
         handlePause();
         progressBattle();
+        checkIfBattleOver();
+    }
+
+    private void checkIfBattleOver() {
+        cont.getBattle().checkIfOver();
+        if (cont.getBattle().isOver()) System.out.println("battle is over");
     }
 
     private void progressBattle() {
@@ -169,11 +175,11 @@ public class updater extends Thread {
     }
 
     private void incrementMana() {
-        cont.bat.bodiesLock.lock();
-        for (AbstractPlayer player : cont.bat.players) {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
             if (!player.isManaBlocked()) player.incrementCurMana(10);
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
     }
 
     /**
@@ -198,25 +204,25 @@ public class updater extends Thread {
     }
 
     private void checkFacingDirections() {
-        cont.bat.bodiesLock.lock();
-        AbstractPlayer player1 = cont.bat.players[0];
-        AbstractPlayer player2 = cont.bat.players[1];
+        cont.getBattle().bodiesLock.lock();
+        AbstractPlayer player1 = cont.players[0];
+        AbstractPlayer player2 = cont.players[1];
         player1.setFacingLeft(player1.hitbox.x > player2.hitbox.x);
         player2.setFacingLeft(player2.hitbox.x > player1.hitbox.x);
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
     }
 
     private void playerCollision() {
-        cont.bat.bodiesLock.lock();
-        if (!cont.bat.players[0].collides(cont.bat.players[1].hitbox)) {
-             cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.lock();
+        if (!cont.players[0].collides(cont.players[1].hitbox)) {
+             cont.getBattle().bodiesLock.unlock();
              return;
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
     }
 
     public Boolean playerColliding(boolean isX, Shape s, AbstractPlayer p) {
-        cont.bat.bodiesLock.lock();
+        cont.getBattle().bodiesLock.lock();
         if (p.getVelocity()[isX ? 0 : 1] == 0) return false;
         boolean retval;
         double dif;
@@ -227,37 +233,39 @@ public class updater extends Thread {
             dif = s.getBounds2D().getCenterY() - p.hitbox.getBounds2D().getCenterY();
         }
         retval = (p.collides(s) && p.getVelocity()[isX ? 0 : 1] * dif > 0);
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
         return retval;
     }
 
     private void handleSpellActions() {
-        cont.bat.bodiesLock.lock();
-        for (AbstractPlayer player : cont.bat.players) {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
             if (!(player instanceof HumanPlayer)) continue;
-            if (player.character.getTimeout() <= 0) {
+            if (player.getCharacter().getTimeout() <= 0) {
                 interpretKeyPresses((HumanPlayer)player);
                 // System.out.println(cont.recentlyRel);
             }
             else {
-                player.character.decrementTimeout(timeDiff);
+                player.getCharacter().decrementTimeout(timeDiff);
             }
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
         checkForCollisions();
     }
 
     private void checkForCollisions() {
-        cont.bat.spellActionLock.lock();
-        for (int i = 0; i < cont.bat.spellActions.size(); i++) {
-            checkSpellActionForCollisions(cont.bat.spellActions.get(i));
+        for (AbstractPlayer player : cont.players) {
+            player.spellActionLock.lock();
+            for (int i = 0; i < player.spellActions.size(); i++) {
+                checkSpellActionForCollisions(player.spellActions.get(i));
+            }
+            player.spellActionLock.unlock();
         }
-        cont.bat.spellActionLock.unlock();
     }
 
     private void checkSpellActionForCollisions(AbstractSpellAction spellAction) {
         spellAction.projectileLock.lock();
-        spellAction.collision(cont.bat.otherPlayer(spellAction.getOwner()));
+        spellAction.collision(cont.otherPlayer(spellAction.getOwner()));
         spellAction.projectileLock.unlock();
     }
 
@@ -265,14 +273,14 @@ public class updater extends Thread {
         Combo[] playerKeys = interpretPlayerKeyPresses(player);
         AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
         if (spellAction != null && player.getCurMana() >= AbstractPlayer.MAX_MANA / AbstractPlayer.MANA_SEGMENTS) {
-            player.character.resetTimeout(spellAction.getCoolDown());
+            player.getCharacter().resetTimeout(spellAction.getCoolDown());
             player.decrementCurMana((int)((double)AbstractPlayer.MAX_MANA / (double)AbstractPlayer.MANA_SEGMENTS));
             spellAction.start();
         }
     }
 
     private AbstractSpellAction toSpellAction(Combo[] combo, AbstractPlayer p) {
-        for (Pair<Combo[], AbstractSpellActionFactory> comboPair : p.character.comboMapping) {
+        for (Pair<Combo[], AbstractSpellActionFactory> comboPair : p.getCharacter().comboMapping) {
             if (Arrays.equals(combo,comboPair.fst)) return comboPair.snd.newSpell();
         }
         return null;
@@ -319,26 +327,28 @@ public class updater extends Thread {
      * updates the velocity of bodies.
      */
     private void updateVelocity() {
-        cont.bat.bodiesLock.lock();
-        for (AbstractPhysicalBody body : cont.bat.bodies) {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPhysicalBody body : cont.getBattle().bodies) {
             Double[] oldV = body.getVelocity();
             Double[] newV = oldV;
-            if (body.gravityApplies) newV[1] += 0.002 * timeDiff;
+            if (body.gravityApplies) newV[1] += 0.003 * timeDiff;
             for (int i = 0; i < 2; i++) {
-                newV[i] = cont.bat.outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i];
+                newV[i] = cont.getBattle().outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i];
             }
             body.setVelocity(newV);
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
         updateSpellActionsProjectilesVelocity();
     }
 
     public void updateSpellActionsProjectilesVelocity() {
-        cont.bat.spellActionLock.lock();
-        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
-            updateProjectilesVelocity(spellAction);
+        for (AbstractPlayer player : cont.players) {
+            player.spellActionLock.lock();
+            for (AbstractSpellAction spellAction : player.spellActions) {
+                updateProjectilesVelocity(spellAction);
+            }
+            player.spellActionLock.unlock();   
         }
-        cont.bat.spellActionLock.unlock();
     }
 
     private void updateProjectilesVelocity(AbstractSpellAction spellAction) {
@@ -348,7 +358,7 @@ public class updater extends Thread {
             Double[] newV = oldV;
             if (spellAction.getProjectiles().get(i).gravityApplies) newV[1] += 0.002 * timeDiff;
             for (int j = 0; j < 2; j++) {
-                newV[j] = cont.bat.outOfBounds(j, spellAction.getProjectiles().get(i).hitbox, newV[j])? 0.0: newV[j];
+                newV[j] = cont.getBattle().outOfBounds(j, spellAction.getProjectiles().get(i).hitbox, newV[j])? 0.0: newV[j];
             }
             spellAction.getProjectiles().get(i).setVelocity(newV);
         }
@@ -370,10 +380,10 @@ public class updater extends Thread {
      * handles user input for moving players.
      */
     private void handleMovement() {
-        cont.bat.bodiesLock.lock();
+        cont.getBattle().bodiesLock.lock();
         int i = 0;
         
-        for (AbstractPlayer player : cont.bat.players) {
+        for (AbstractPlayer player : cont.players) {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
             HumanPlayer human = (HumanPlayer)player;
@@ -381,14 +391,14 @@ public class updater extends Thread {
             double y = oldV[1];
             if (cont.isKeyHeld(human.getKeyCode(Keys.Up)) && 
                 (player.getVelocity()[1] == 0)) {
-                y -= 1;
+                y -= 1.3;
             }
             player.setVel(new Double[]{x, y});
-            if (playerColliding(true, cont.bat.players[(i++ + 1) % 2].hitbox, player)) {
+            if (playerColliding(true, cont.players[(i++ + 1) % 2].hitbox, player)) {
                 player.setVel(new Double[]{0d, y});
             };
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
     }
 
     /**
@@ -408,27 +418,29 @@ public class updater extends Thread {
      */
     private void updatePositions() {
         int pIndex = 0;
-        cont.bat.bodiesLock.lock();
-        for (AbstractPlayer player : cont.bat.players) {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
             Integer[] oldpos = player.getPosition();
             Integer[] newPos = new Integer[]{oldpos[0], oldpos[1]};
             for (int i = 0; i < 2; i++) {
                 newPos[i] += (int)((double)timeDiff.intValue() * player.getVelocity()[i]);
             }
-            cont.bat.changePlayerPos(pIndex++, newPos);
+            cont.getBattle().changePlayerPos(pIndex++, newPos);
         }
-        cont.bat.bodiesLock.unlock();
+        cont.getBattle().bodiesLock.unlock();
         playerCollision();
         updateSpellActionProjectilePositions();
         checkFacingDirections();
     }
 
     private void updateSpellActionProjectilePositions() {
-        cont.bat.spellActionLock.lock();
-        for (AbstractSpellAction spellAction : cont.bat.spellActions) {
-            updateProjectilePositions(spellAction);
+        for (AbstractPlayer player : cont.players) {
+            player.spellActionLock.lock();
+            for (AbstractSpellAction spellAction : player.spellActions) {
+                updateProjectilePositions(spellAction);
+            }
+            player.spellActionLock.unlock();   
         }
-        cont.bat.spellActionLock.unlock();
     }
 
     private void updateProjectilePositions(AbstractSpellAction spellAction) {

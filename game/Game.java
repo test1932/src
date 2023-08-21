@@ -16,27 +16,25 @@ public class Game {
     public Display screen;
     public GameState gameState;
     public Difficulty difficulty;
-    public Battle b;
-    public Controller c;
+    private Controller cont;
 
     private List<Observer> observers;
     public AbstractMenu titleMenu;
     private AbstractMenu curMenu;
 
-    public Game(Difficulty diff, Battle b) {
+    public Game(Difficulty diff, Controller cont) {
         observers = new ArrayList<Observer>();
-        this.b = b;
+        this.cont = cont;
         this.titleMenu = new MenuTitle(this, null);
         this.curMenu = titleMenu;
-        this.b.setGame(this);
         this.difficulty = diff;
         this.gameState = GameState.Menu;
     }
 
     public static void main(String[] args) {
-        Game theWorld = new Game(Difficulty.Normal, new Battle());
-        theWorld.c = new Controller(theWorld.b, theWorld);
-        theWorld.screen = new Display(theWorld.b, theWorld.c);
+        Game theWorld = new Game(Difficulty.Normal, new Controller());
+        theWorld.getCont().activateController(theWorld);
+        theWorld.screen = new Display(theWorld.cont);
     }
 
     public void notifyObservers() {
@@ -55,5 +53,13 @@ public class Game {
 
     public void addObserver(Observer o) {
         this.observers.add(o);
+    }
+
+    public Controller getCont() {
+        return cont;
+    }
+
+    public void setCont(Controller cont) {
+        this.cont = cont;
     }
 }

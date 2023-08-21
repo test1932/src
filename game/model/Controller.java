@@ -7,8 +7,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import bodies.characters.AbstractPlayer;
+import bodies.characters.HumanPlayer;
 // local imports
 import game.Game;
+import game.model.scenario.AbstractScenario;
 import game.model.scenario.Battle;
 
 /**
@@ -24,7 +27,12 @@ public class Controller {
     private ReentrantLock recMutex = new ReentrantLock();
     private ReentrantLock holdMutex = new ReentrantLock();
     private updater gameLoop;
-    public Battle bat;
+    private AbstractScenario scenario;
+
+    public AbstractPlayer[] players 
+        = {new HumanPlayer(true), 
+           new HumanPlayer(false)};
+
     public Game game;
 
     // key press data structures
@@ -36,12 +44,13 @@ public class Controller {
      * class representing link between game loop updating the model
      * and the key listener for getting input.
      * Constructor method.
-     * @param b battle being represented (not necessarily shown).
-     * @param g game being represented.
      */
-    public Controller (Battle b, Game g) {
-        this.bat = b;
-        this.game = g;
+    public Controller () {
+        //Pass
+    }
+
+    public void activateController(Game game) {
+        this.game = game;
         gameLoop = new updater(this, recMutex, holdMutex, game);
         gameLoop.start();
     }
@@ -54,6 +63,10 @@ public class Controller {
      */
     public Boolean isKeyHeld(Integer keyid) {
         return this.heldKeys.contains(keyid);
+    }
+
+    public AbstractPlayer otherPlayer(AbstractPlayer player) {
+        return players[0] == player ? players[1] : players[0];
     }
 
     /**
@@ -80,5 +93,17 @@ public class Controller {
         recMutex.lock();
         this.recentlyRel.add(new Pair<Integer,Long>(keyid, RECENT_TIMEOUT));
         recMutex.unlock();
+    }
+
+    public AbstractScenario getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(AbstractScenario scenario) {
+        this.scenario = scenario;
+    }
+
+    public Battle getBattle() {
+        return this.scenario.getBattle();
     }
 }

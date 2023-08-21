@@ -8,11 +8,10 @@ import game.Game;
 import menu.AbstractMenu;
 import menu.AbstractOption;
 import menu.OptionBack;
-import game.model.scenario.Battle;
 
 public class MenuSettings extends AbstractMenu{
     public MenuSettings(Game game, AbstractMenu prevMenu) {
-        super(game, "Settings", prevMenu, "assets/settings.png");
+        super(game, "Settings", prevMenu, "assets/images/backgrounds/settings.png");
         LinkedList<HumanPlayer> humans = getHumans();
         options = new AbstractOption[1 + humans.size()];
 
@@ -26,12 +25,12 @@ public class MenuSettings extends AbstractMenu{
 
     @Override
     public void animateSelectionChange() {
-        // TODO Anumation
+        // TODO Animation
     }
     
     private LinkedList<HumanPlayer> getHumans() {
         LinkedList<HumanPlayer> humans = new LinkedList<HumanPlayer>();
-        for (AbstractPlayer player : game.b.players) {
+        for (AbstractPlayer player : game.getCont().players) {
             if (player instanceof HumanPlayer) humans.add((HumanPlayer)player);
         }
         return humans;

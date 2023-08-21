@@ -8,7 +8,7 @@ import menu.settings.OptionExit;
 public class MenuTitle extends AbstractMenu {
 
     public MenuTitle(Game game, AbstractMenu prevMenu) {
-        super(game, "Title", prevMenu, "assets/tempBackground.jpg");
+        super(game, "Title", prevMenu, "assets/images/backgrounds/tempBackground.jpg");
         options = new AbstractOption[]{
             new OptionStory(game, this),
             new OptionArcade(game, this),

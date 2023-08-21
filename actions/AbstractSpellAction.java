@@ -7,7 +7,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // local imports
 import bodies.projectiles.AbstractProjectile;
-import game.model.scenario.Battle;
 import bodies.characters.AbstractPlayer;
 
 /**
@@ -19,19 +18,17 @@ public abstract class AbstractSpellAction extends Thread{
     private ArrayList<AbstractProjectile> projectiles = new ArrayList<AbstractProjectile>();
     private AbstractPlayer owner;
     private long coolDown;
-    private Battle bat;
     protected long castTime = 0l;
 
     public ReentrantLock projectileLock = new ReentrantLock();
 
-    public AbstractSpellAction(AbstractPlayer player, long coolDown, Battle bat, long durationRem) {
+    public AbstractSpellAction(AbstractPlayer player, long coolDown, long durationRem) {
         this.owner = player;
         this.coolDown = coolDown;
-        this.bat = bat;
         this.durationRem = durationRem;
-        bat.spellActionLock.lock();
-        bat.spellActions.add(this);
-        bat.spellActionLock.unlock();
+        owner.spellActionLock.lock();
+        owner.spellActions.add(this);
+        owner.spellActionLock.unlock();
     }
 
     public void run() {
@@ -97,9 +94,9 @@ public abstract class AbstractSpellAction extends Thread{
     }
 
     public void removeAllProjectiles() {
-        bat.spellActionLock.lock();
-        this.bat.spellActions.remove(this);
-        bat.spellActionLock.unlock();
+        owner.spellActionLock.lock();
+        this.owner.spellActions.remove(this);
+        owner.spellActionLock.unlock();
         projectileLock.lock();
         this.projectiles = null;
         projectileLock.unlock();
