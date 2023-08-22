@@ -5,21 +5,20 @@ import java.util.ArrayList;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Sakuya.Sakuya;
-import bodies.characters.Sakuya.SakuyaScenario;
+import bodies.characters.Sakuya.SakuyaScenarioFactory;
 import game.Game;
 import game.model.Pair;
-import game.model.scenario.AbstractScenario;
-import game.model.scenario.Battle;
+import game.model.scenario.AbstractScenarioFactory;
 import menu.AbstractMenu;
 import menu.AbstractOption;
 import menu.OptionBack;
 
 public class MenuCharacter extends AbstractMenu {
-    private ArrayList<Pair<AbstractScenario, AbstractCharacter>> names = new ArrayList<Pair<AbstractScenario, AbstractCharacter>>();
+    private ArrayList<Pair<AbstractScenarioFactory, AbstractCharacter>> names = new ArrayList<Pair<AbstractScenarioFactory, AbstractCharacter>>();
     private AbstractPlayer player;
 
     private void setupCharacters() {
-        names.add(new Pair<AbstractScenario,AbstractCharacter>(new SakuyaScenario(new Battle(game.getCont()), null), new Sakuya(player)));
+        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SakuyaScenarioFactory(null, game.getCont()), new Sakuya(player)));
     }
 
     public MenuCharacter(Game game, AbstractMenu prevMenu, AbstractPlayer player) {
@@ -30,7 +29,7 @@ public class MenuCharacter extends AbstractMenu {
         options = new AbstractOption[names.size() + 1];
 
         int i = 0;
-        for (Pair<AbstractScenario, AbstractCharacter> name : names) {
+        for (Pair<AbstractScenarioFactory, AbstractCharacter> name : names) {
             options[i] = new CharacterOption(game, this, name.snd.getName(), player, name.snd, name.fst);
         }
 

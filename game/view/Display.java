@@ -27,7 +27,10 @@ public class Display extends JFrame implements Observer {
     private BufferedImage backBuffer;
 
     private Font mainFont = new Font("sansserif", Font.PLAIN, 20);
+    private Font monospaceFont = new Font("monospace", Font.PLAIN, 20);
     private Rectangle menuArea = new Rectangle(50, 50, 300, 450);
+    private Rectangle dialogueArea = new Rectangle(25, HEIGHT - 150, WIDTH - 50, 150);
+    private Color menuAreaColour = new Color(200, 200, 200, 150);
 
     private final int OPTION_MIN_X = 75;
     private final int OPTION_MIN_Y = 200;
@@ -71,11 +74,21 @@ public class Display extends JFrame implements Observer {
 
     private void paintDialogue(Graphics2D g2D, Dialogue dialogue) {
         Color tempColor = g2D.getColor();
+        Font tempFont = g2D.getFont();
+
+        g2D.drawImage(dialogue.getSprite(), dialogue.isLeft() ? Dialogue.LEFT_X : WIDTH - Dialogue.WIDTH, 50, Dialogue.WIDTH, HEIGHT, this);
+        g2D.setColor(menuAreaColour);
+        g2D.fill(dialogueArea);
+
+        g2D.setFont(monospaceFont);
         g2D.setColor(Color.BLACK);
+        g2D.draw(dialogueArea);
         g2D.drawString(dialogue.getTextLine1(), Dialogue.TEXT_X, Dialogue.LINE_1_TEXT_Y);
         g2D.drawString(dialogue.getTextLine2(), Dialogue.TEXT_X, Dialogue.LINE_2_TEXT_Y);
-        // g2D.drawImage(dialogue.getSprite(), dialogue.isLeft() ? Dialogue.LEFT_X : WIDTH - Dialogue.WIDTH, 50, WIDTH, HEIGHT, this);
+
         g2D.setColor(tempColor);
+        g2D.setFont(tempFont);
+
     }
 
     @Override
@@ -120,17 +133,18 @@ public class Display extends JFrame implements Observer {
             default:
                 paintBattle(g2D);
                 paintDialogue(g2D, cont.getScenario().getDialogue());
+                paintStats(g2D);
                 break;
         }
     }
 
     public void paintBattle(Graphics2D g2D) {
         // paintWalls(g2D); // paint walls
+        g2D.drawImage(cont.getBattle().getBackBackground(), 0, 0, WIDTH, HEIGHT, this);
         g2D.drawImage(cont.getBattle().getBackground(), 0, 0, WIDTH, HEIGHT, this);
         paintPlayers(g2D); // paint players
         paintProjectiles(g2D); // paints projectiles
         paintStats(g2D);
-
     }
 
     private void paintStats(Graphics2D g2D) {
@@ -186,7 +200,7 @@ public class Display extends JFrame implements Observer {
     public void paintMenu(Graphics2D g2D) {
         g2D.drawImage(cont.game.getCurMenu().getBackground(), 0, 0, WIDTH, HEIGHT, this);
         Color temp = g2D.getColor();
-        g2D.setColor(new Color(200, 200, 200, 150));
+        g2D.setColor(menuAreaColour);
         g2D.fill(menuArea);
         g2D.setColor(temp);
         g2D.drawString("This is the " + cont.game.getCurMenu().getMenuName() + " menu", OPTION_MIN_X, 100);

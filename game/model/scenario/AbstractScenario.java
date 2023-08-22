@@ -17,7 +17,6 @@ public abstract class AbstractScenario {
 
     public boolean nextDialogue() {
         if (battle.isOver()) {
-            // System.out.println(postBattle);
             postBattle = postBattle.getNext();
             return postBattle == null;
         }

@@ -10,7 +10,7 @@ import actions.AbstractSpellAction;
 import actions.AbstractSpellActionFactory;
 import game.Game;
 import game.Game.GameState;
-import game.model.scenario.AbstractScenario.ScenarioState;
+import game.model.scenario.AbstractScenario;
 import menu.pause.MenuPause;
 
 import bodies.AbstractPhysicalBody;
@@ -165,12 +165,12 @@ public class updater extends Thread {
                 runBattle();
                 break;
             case PRE_BATTLE:
-                handlePreDialogue();
                 outOfBattleMotion();
+                handlePreDialogue();
                 break;
             case POST_BATTLE:
-                handlePostDialogue();
                 outOfBattleMotion();
+                handlePostDialogue();
                 break;
         }
     }
@@ -194,18 +194,27 @@ public class updater extends Thread {
     }
 
     private void handlePostDialogue() {
-        if (keyPressTimout <= 0) {
+        if (keyPressTimout <= 0 && cont.isKeyHeld(90)) {
             // z
-            if (cont.isKeyHeld(90)) {
-                keyPressTimout = KEY_PRESS_TIMEOUT;
-                if (cont.getScenario().nextDialogue()) {
-                    //TODO handle last scenario
-                    cont.setScenario(cont.getScenario().getNextScenario());
-                }
-            }
+            keyPressDialogue();
         }
         else {
             keyPressTimout -= timeDiff;
+        }
+    }
+
+    private void keyPressDialogue() {
+        keyPressTimout = KEY_PRESS_TIMEOUT;
+        if (cont.getScenario().nextDialogue()) {
+            AbstractScenario nextScenario = cont.getScenario().getNextScenario();
+            if (nextScenario == null) {
+                gameModel.setCurMenu(gameModel.titleMenu);
+                gameModel.gameState = GameState.Menu;
+                gameModel.getCont().setScenario(null);
+            }
+            else {
+                cont.setScenario(cont.getScenario().getNextScenario());
+            }
         }
     }
 
@@ -224,7 +233,7 @@ public class updater extends Thread {
 
     private void checkIfBattleOver() {
         cont.getScenario().checkIfBattleOver();
-        if (cont.getScenario().getBattle().isOver()) System.out.println("battle is over");
+        // if (cont.getScenario().getBattle().isOver()) System.out.println("battle is over");
     }
 
     private void progressBattle() {

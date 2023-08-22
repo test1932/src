@@ -10,11 +10,11 @@ public class Dialogue {
     private boolean isLeft;
     private Dialogue next;
 
-    public static final int LINE_1_TEXT_Y = 400;
-    public static final int LINE_2_TEXT_Y = 430;
+    public static final int LINE_1_TEXT_Y = 430;
+    public static final int LINE_2_TEXT_Y = 460;
     public static final int TEXT_X = 50;
     public static final int LEFT_X = 0;
-    public static final int WIDTH = 300;
+    public static final int WIDTH = 400;
     public static final int HEIGHT = 400;
 
     public Dialogue(BufferedImage sprite, String text, boolean isLeft) {

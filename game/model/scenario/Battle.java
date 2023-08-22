@@ -19,8 +19,10 @@ import game.model.Controller;
 public class Battle {
     public Rectangle bounds;
     public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
-    protected String path = "assets/images/backgrounds/battle1.png";
+    protected String pathBack = "assets/images/backgrounds/battle1.png";
+    protected String pathBackBack = "assets/images/backgrounds/backbackground.jpg";
     public BufferedImage background;
+    public BufferedImage backbackground;
 
     public AbstractPhysicalBody[] walls;
     public ReentrantLock bodiesLock = new ReentrantLock();
@@ -51,7 +53,8 @@ public class Battle {
 
     public void setBackground() {
         try {
-            this.background = ImageIO.read(new File(path));
+            this.background = ImageIO.read(new File(pathBack));
+            this.backbackground = ImageIO.read(new File(pathBackBack));
         } catch (IOException e) {
             System.err.println("failed to get image");
         }
@@ -59,6 +62,10 @@ public class Battle {
 
     public BufferedImage getBackground() {
         return background;
+    }
+
+    public BufferedImage getBackBackground() {
+        return backbackground;
     }
 
     private void setupWalls() {

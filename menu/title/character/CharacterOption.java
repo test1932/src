@@ -4,21 +4,21 @@ import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import game.Game;
 import game.Game.GameState;
-import game.model.scenario.AbstractScenario;
+import game.model.scenario.AbstractScenarioFactory;
 import menu.AbstractMenu;
 import menu.AbstractOption;
 
 public class CharacterOption extends AbstractOption {
     protected AbstractCharacter character;
     protected AbstractPlayer player;
-    protected AbstractScenario scenario;
+    protected AbstractScenarioFactory scenario;
 
     public CharacterOption(Game game, AbstractMenu parent, String optionName, AbstractPlayer player, 
-            AbstractCharacter character, AbstractScenario scenario) {
+            AbstractCharacter character, AbstractScenarioFactory scenarioFactory) {
         super(game, parent, optionName);
         this.player = player;
         this.character = character;
-        this.scenario = scenario;
+        this.scenario = scenarioFactory;
     }
     
     public AbstractCharacter getCharacter() {
@@ -40,8 +40,14 @@ public class CharacterOption extends AbstractOption {
     @Override
     public void statefulHandler() {
         player.setCharacter(character);
-        game.getCont().setScenario(this.scenario);
+        game.getCont().setScenario(this.scenario.makeScenario());
         game.gameState = GameState.Playing;
         game.setCurMenu(null);
+
+        game.getCont().getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : game.getCont().players) {
+            player.reset();
+        }
+        game.getCont().getBattle().bodiesLock.unlock();
     }
 }

@@ -39,9 +39,9 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         int x;
         this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
-        setPosition(new Integer[]{x,300});
+        setPosition(new Integer[]{x,100});
 
-        this.hitbox = new Rectangle(x, 350, 30, 80);
+        this.hitbox = new Rectangle(x, 100, 30, 80);
         this.image = this.hitbox;
         this.facingLeft = !isLeft;
         gravityApplies = true;
@@ -150,5 +150,10 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public void setCharacter(AbstractCharacter character) {
         this.character = character;
+    }
+
+    public void reset() {
+        this.health = MAX_HEALTH;
+        this.curMana = MAX_MANA;
     }
 }
