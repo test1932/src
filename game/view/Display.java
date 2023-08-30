@@ -76,7 +76,8 @@ public class Display extends JFrame implements Observer {
         Color tempColor = g2D.getColor();
         Font tempFont = g2D.getFont();
 
-        g2D.drawImage(dialogue.getSprite(), dialogue.isLeft() ? Dialogue.LEFT_X : WIDTH - Dialogue.WIDTH, 50, Dialogue.WIDTH, HEIGHT, this);
+        drawSprite(dialogue.getSpriteLeft(), g2D, true, Dialogue.LEFT_X);
+        drawSprite(dialogue.getSpriteRight(), g2D, false, Dialogue.LEFT_X);
         g2D.setColor(menuAreaColour);
         g2D.fill(dialogueArea);
 
@@ -89,6 +90,13 @@ public class Display extends JFrame implements Observer {
         g2D.setColor(tempColor);
         g2D.setFont(tempFont);
 
+    }
+
+    private void drawSprite(BufferedImage img, Graphics2D g2D, boolean isLeft, int leftX) {
+        double ratio = (double)HEIGHT / img.getHeight();
+        int width = (int)(img.getWidth() * ratio);
+        int x = isLeft ? leftX : WIDTH - width;
+        g2D.drawImage(img, x , 50, width, HEIGHT, this);
     }
 
     @Override

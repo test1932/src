@@ -1,9 +1,14 @@
 package game.model.scenario;
 
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 public class Dialogue {
-    private BufferedImage sprite;
+    private BufferedImage spriteLeft;
+    private BufferedImage spriteRight;
     private String textLine1;
     private String textLine2;
     //TODO audio
@@ -17,8 +22,9 @@ public class Dialogue {
     public static final int WIDTH = 400;
     public static final int HEIGHT = 400;
 
-    public Dialogue(BufferedImage sprite, String text, boolean isLeft) {
-        this.sprite = sprite;
+    public Dialogue(BufferedImage spriteLeft, BufferedImage spriteRight, String text, boolean isLeft) {
+        this.spriteRight = spriteRight;
+        this.spriteLeft = spriteLeft;
         if (text.length() > 60) {
             this.textLine1 = text.substring(0,60);
             this.textLine2 = text.substring(60);
@@ -28,6 +34,38 @@ public class Dialogue {
             this.textLine2 = "";
         }
         this.isLeft = isLeft;
+        mirrorRight();
+        applyTransparency();
+    }
+
+    private void mirrorRight() {
+        AffineTransform transform = AffineTransform.getScaleInstance(-1, 1);
+        transform.translate(-spriteRight.getWidth(), 0);
+        AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        spriteRight = op.filter(spriteRight, null);
+    }
+
+    private void applyTransparency() {
+        BufferedImage img;
+        if (isLeft) {
+            img = spriteRight;
+        }
+        else {
+            img = spriteLeft;
+        }
+
+        BufferedImage temp = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = temp.createGraphics();
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+        g2d.drawImage(img, 0, 0, null);
+        g2d.dispose();
+
+        if (isLeft) {
+            spriteRight = temp;
+        }
+        else {
+            spriteLeft = temp;
+        }
     }
 
     public Dialogue getNext() {
@@ -38,8 +76,12 @@ public class Dialogue {
         this.next = next;
     }
 
-    public BufferedImage getSprite() {
-        return sprite;
+    public BufferedImage getSpriteLeft() {
+        return spriteLeft;
+    }
+
+    public BufferedImage getSpriteRight() {
+        return spriteRight;
     }
 
     public String getTextLine1() {

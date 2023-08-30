@@ -11,6 +11,7 @@ import actions.AbstractSpellActionFactory;
 import game.Game;
 import game.Game.GameState;
 import game.model.scenario.AbstractScenario;
+import game.model.scenario.AbstractScenario.ScenarioState;
 import menu.pause.MenuPause;
 
 import bodies.AbstractPhysicalBody;
@@ -161,6 +162,9 @@ public class updater extends Thread {
      */
     private void runScenario() {
         switch(cont.getScenario().getCurScenarioState()) {
+            case SETUP:
+                handleScenarioSetup();
+                break;
             case BATTLE:
                 runBattle();
                 break;
@@ -173,6 +177,13 @@ public class updater extends Thread {
                 handlePostDialogue();
                 break;
         }
+    }
+
+    private void handleScenarioSetup() {
+        for (AbstractPlayer player : cont.players) {
+            player.resetPosition();
+        }
+        cont.getScenario().setCurScenarioState(ScenarioState.PRE_BATTLE);
     }
 
     private void outOfBattleMotion() {

@@ -13,7 +13,7 @@ import effects.IEffect;
 
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private static final int LEFT_X = 120;
-    private static final int RIGHT_X = 700;
+    private static final int RIGHT_X = 800;
     public static final int MAX_HEALTH = 1000;
     public static final int MAX_MANA = 10000;
     public static final int MANA_SEGMENTS = 5;
@@ -39,12 +39,18 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         int x;
         this.isLeft = isLeft;
         x = isLeft? LEFT_X:RIGHT_X;
-        setPosition(new Integer[]{x,100});
+        setPosition(new Integer[]{x,0});
 
-        this.hitbox = new Rectangle(x, 100, 30, 80);
+        this.hitbox = new Rectangle(x, 0, 30, 80);
         this.image = this.hitbox;
         this.facingLeft = !isLeft;
         gravityApplies = true;
+    }
+
+    public void resetPosition() {
+        int x;
+        x = isLeft? LEFT_X:RIGHT_X;
+        setPosition(new Integer[]{x,0});
     }
 
     public void setVel(Double[] velocity) {
