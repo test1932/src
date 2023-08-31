@@ -13,7 +13,7 @@ public class SegmentedProgressBar extends ProgressBar{
     protected LinkedList<Rectangle> progressFill = new LinkedList<Rectangle>();
     protected LinkedList<Rectangle> outlines = new LinkedList<Rectangle>();;
 
-    private final int SEPARATOR = 10;
+    public final int SEPARATOR = 10;
 
     public SegmentedProgressBar(boolean isReversed, int x, int y, int width, int height, double initial, int segments) {
         super(isReversed, x, y, width, height, initial);
@@ -30,7 +30,7 @@ public class SegmentedProgressBar extends ProgressBar{
         setupSegments(x, y, width, height, segments);
     }
 
-    private void setupSegments(int x, int y, int width, int height, int segments) {
+    protected void setupSegments(int x, int y, int width, int height, int segments) {
         int segmentWidth = (width / segments) - SEPARATOR;
         for (int i = 0; i < segments; i++) {
             int segmentX = x + i * ((width / segments));
@@ -39,7 +39,7 @@ public class SegmentedProgressBar extends ProgressBar{
         }
     }
 
-    private void fillProgress() {
+    protected void fillProgress() {
         double progressTemp = progress;
         int width = outlines.getFirst().width;
         int n = 0;

@@ -1,6 +1,6 @@
 package actions;
 
 // fake factory
-public abstract class AbstractSpellActionFactory {
+public interface ISpellActionFactory {
     public abstract AbstractSpellAction newSpell();
 }

@@ -2,18 +2,18 @@ package bodies.characters;
 
 import java.util.ArrayList;
 
-import actions.AbstractSpellActionFactory;
-import actions.spellcard.AbstractSpellcard;
+import actions.AbstractSpellcard;
+import actions.ISpellActionFactory;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {
     public enum Combo {Forward, Back, Up, Down, Melee, Weak, Strong}
 
-    public ArrayList<Pair<Combo[], AbstractSpellActionFactory>> comboMapping
-        = new ArrayList<Pair<Combo[], AbstractSpellActionFactory>>();
+    public ArrayList<Pair<Combo[], ISpellActionFactory>> comboMapping
+        = new ArrayList<Pair<Combo[], ISpellActionFactory>>();
 
-    private Pair<Combo[],AbstractSpellActionFactory> makePair(Combo[] keys, AbstractSpellActionFactory combo) {
-        return new Pair<Combo[],AbstractSpellActionFactory>(keys, combo);
+    private Pair<Combo[],ISpellActionFactory> makePair(Combo[] keys, ISpellActionFactory combo) {
+        return new Pair<Combo[],ISpellActionFactory>(keys, combo);
     }
 
     protected AbstractSpellcard[] deck = new AbstractSpellcard[20];
@@ -59,6 +59,7 @@ public abstract class AbstractCharacter {
     private String name;
 
     protected long timeout;
+    protected long spellTimeout;
     protected int meleeCombo = 3;
 
     public AbstractCharacter(AbstractPlayer player, String name) {
@@ -85,6 +86,19 @@ public abstract class AbstractCharacter {
 
     public long getTimeout() {
         return timeout;
+    }
+
+
+    public void resetSpellTimeout(long timeDiff) {
+        spellTimeout = timeDiff;
+    }
+
+    public void decrementSpellTimeout(long timeDiff) {
+        this.spellTimeout = Math.max(0, this.spellTimeout - timeDiff);
+    }
+
+    public long getSpellTimeout() {
+        return spellTimeout;
     }
 
     public void setTimeout(long timeout) {

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
-import actions.spellcard.AbstractSpellcard;
+import actions.AbstractSpellcard;
 import bodies.AbstractPhysicalBody;
 import effects.IEffect;
 
@@ -16,6 +16,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private static final int RIGHT_X = 800;
     public static final int MAX_HEALTH = 1000;
     public static final int MAX_MANA = 10000;
+    public static final int MAX_CARD_PROGRESS = 10000;
     public static final int MANA_SEGMENTS = 5;
 
     protected Double speedMultiplier = 1.0;
@@ -28,6 +29,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     private boolean isLeft;
     private int curMana = MAX_MANA;
+    private int curCardProgress = 0;
     private boolean isManaBlocked = false;
 
     private ReentrantLock manaLock = new ReentrantLock();
@@ -51,6 +53,10 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         int x;
         x = isLeft? LEFT_X:RIGHT_X;
         setPosition(new Integer[]{x,0});
+    }
+
+    public int getCurCardProgress() {
+        return curCardProgress;
     }
 
     public void setVel(Double[] velocity) {
@@ -132,6 +138,22 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         decrementCurMana(-increment);
     }
 
+    public void decrementCardProgress(int decrement) {
+        manaLock.lock();
+        this.curCardProgress = Math.max(Math.min(curCardProgress - decrement, MAX_CARD_PROGRESS), 0);
+        manaLock.unlock();
+    }
+
+    public void incrementCardProgress(int increment) {
+        int temp = curCardProgress;
+        decrementCardProgress(-increment);
+        if (!((temp / (MAX_CARD_PROGRESS / 5)) - (curCardProgress / (MAX_CARD_PROGRESS / 5)) == 0)) {
+            int maxIndex = character.deck.length - 1;
+            int rindex = Math.min(maxIndex, (int)(Math.random() * 20));
+            hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = character.deck[rindex];
+        }
+    }
+
     public boolean isManaBlocked() {
         return isManaBlocked;
     }
@@ -161,5 +183,27 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     public void reset() {
         this.health = MAX_HEALTH;
         this.curMana = MAX_MANA;
+        this.curCardProgress = 0;
+    }
+
+    public AbstractSpellcard getHeldCard() {
+        return hand[0];
+    }
+
+    public void nextCard() {
+        if (curCardProgress < (MAX_CARD_PROGRESS / 5)) return;
+        System.out.println("next card");
+        AbstractSpellcard oldHead = hand[0];
+        for (int i = 0; i < hand.length - 1; i++) {
+            hand[i] = hand[i + 1];
+        }
+        System.out.println(curCardProgress);
+        hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = oldHead;
+    }
+
+    public void playCard() {
+        System.out.println("playing card");
+        if (hand[0] == null) return;
+        hand[0].activateSpellCard();
     }
 }

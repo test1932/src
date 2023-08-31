@@ -1,4 +1,4 @@
-package actions.spellcard;
+package actions;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import actions.AbstractSpellAction;
 import bodies.characters.AbstractPlayer;
 
 public abstract class AbstractSpellcard {
@@ -14,6 +13,7 @@ public abstract class AbstractSpellcard {
     protected int cost = 1;
     private AbstractPlayer owner;
     private BufferedImage cardImage;
+    public long timeout = 500l;
 
     protected String path;
 

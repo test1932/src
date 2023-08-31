@@ -81,6 +81,12 @@ public class Controller {
         }
     }
 
+    public void unholdKey(Integer keyid) {
+        holdMutex.lock();
+        this.heldKeys.remove(keyid);
+        holdMutex.unlock();
+    }
+
     /**
      * remove keycode from the list of hed keys and add it to the list of
      * recently held keys.

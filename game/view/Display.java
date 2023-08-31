@@ -43,8 +43,13 @@ public class Display extends JFrame implements Observer {
     };
 
     private SegmentedProgressBar[] manaBars = new SegmentedProgressBar[] {
-        new SegmentedProgressBar(false, 200, HEIGHT - 30, 200, 20, 5),
-        new SegmentedProgressBar(true, WIDTH - 200 - 200, HEIGHT - 30, 200, 20, 5)
+        new SegmentedProgressBar(false, 250, HEIGHT - 30, 200, 20, 5),
+        new SegmentedProgressBar(true, WIDTH - 250 - 200, HEIGHT - 30, 200, 20, 5)
+    };
+
+    private VerticalSegmentedProgressBar[] cardBars = new VerticalSegmentedProgressBar[] {
+        new VerticalSegmentedProgressBar(false, 40, HEIGHT - 70, 200, 50, 5),
+        new VerticalSegmentedProgressBar(true, WIDTH - 40 - 200, HEIGHT - 70, 200, 50, 5)
     };
 
     private Line2D.Double underline 
@@ -56,6 +61,7 @@ public class Display extends JFrame implements Observer {
         setup();
         setupHealthBars();
         setupManaBars();
+        setupCardBars();
     }
 
     private void setupHealthBars() {
@@ -70,6 +76,13 @@ public class Display extends JFrame implements Observer {
         manaBars[0].setOutlineColour(Color.BLUE);
         manaBars[1].setFillColour(Color.CYAN);
         manaBars[1].setOutlineColour(Color.BLUE);
+    }
+
+    private void setupCardBars() {
+        cardBars[0].setFillColour(Color.RED);
+        cardBars[0].setOutlineColour(Color.ORANGE);
+        cardBars[1].setFillColour(Color.RED);
+        cardBars[1].setOutlineColour(Color.ORANGE);
     }
 
     private void paintDialogue(Graphics2D g2D, Dialogue dialogue) {
@@ -140,8 +153,8 @@ public class Display extends JFrame implements Observer {
                 break;
             default:
                 paintBattle(g2D);
-                paintDialogue(g2D, cont.getScenario().getDialogue());
                 paintStats(g2D);
+                paintDialogue(g2D, cont.getScenario().getDialogue());
                 break;
         }
     }
@@ -158,12 +171,20 @@ public class Display extends JFrame implements Observer {
     private void paintStats(Graphics2D g2D) {
         paintHealthBars(g2D);
         paintManaBars(g2D);
+        paintCardBars(g2D);
     }
 
     private void paintHealthBars(Graphics2D g2D) {
         for (int i = 0; i < healthBars.length; i++) {
             healthBars[i].setProgress((double)cont.players[i].getHealth() / (double)AbstractPlayer.MAX_HEALTH);
             healthBars[i].paintProgress(g2D);
+        }
+    }
+
+    private void paintCardBars(Graphics2D g2D) {
+        for (int i = 0; i < manaBars.length; i++) {
+            cardBars[i].setProgress((double)cont.players[i].getCurCardProgress() / (double)AbstractPlayer.MAX_CARD_PROGRESS);
+            cardBars[i].paintProgress(g2D);
         }
     }
 

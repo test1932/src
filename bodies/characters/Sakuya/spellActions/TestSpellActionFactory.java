@@ -1,12 +1,12 @@
 package bodies.characters.Sakuya.spellActions;
 
 import actions.AbstractSpellAction;
-import actions.AbstractSpellActionFactory;
+import actions.ISpellActionFactory;
 import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractProjectile;
 import bodies.projectiles.Projectile_Knife;
 
-public class TestSpellActionFactory extends AbstractSpellActionFactory {
+public class TestSpellActionFactory implements ISpellActionFactory {
     public class TestSpellAction extends AbstractSpellAction {
 
         public TestSpellAction(AbstractPlayer player) {

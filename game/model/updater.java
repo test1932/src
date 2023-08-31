@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
-import actions.AbstractSpellActionFactory;
+import actions.ISpellActionFactory;
 import game.Game;
 import game.Game.GameState;
 import game.model.scenario.AbstractScenario;
@@ -248,8 +248,38 @@ public class updater extends Thread {
     }
 
     private void progressBattle() {
-        handleSpellActions();
+        handleSpellCards();
+        handlePlayerActions();
         incrementMana();
+    }
+
+    private void handleSpellCards() {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
+            if (!(player instanceof HumanPlayer)) continue;
+            if (player.getCharacter().getSpellTimeout() <= 0) {
+                HumanPlayer human = (HumanPlayer) player;
+                handleHumanSpellCards(human);
+            }
+            else {
+                player.getCharacter().decrementSpellTimeout(timeDiff);
+            }
+        }
+        cont.getBattle().bodiesLock.unlock();
+    }
+
+    private void handleHumanSpellCards(HumanPlayer human) {
+        if(cont.heldKeys.contains(human.getKeyCode(Keys.NextCard))) {
+            human.nextCard();
+            human.getCharacter().resetSpellTimeout(200l);
+        }
+        else if (cont.heldKeys.contains(human.getKeyCode(Keys.PlayCard)) 
+                && human.getCurCardProgress() >= AbstractPlayer.MAX_CARD_PROGRESS / 5) {
+            human.getCharacter().resetSpellTimeout(human.getHeldCard().timeout);
+            human.playCard();
+            human.decrementCardProgress(AbstractPlayer.MAX_CARD_PROGRESS / 5);
+            keyPressTimout = KEY_PRESS_TIMEOUT;
+        }
     }
 
     private void incrementMana() {
@@ -315,7 +345,7 @@ public class updater extends Thread {
         return retval;
     }
 
-    private void handleSpellActions() {
+    private void handlePlayerActions() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
             if (!(player instanceof HumanPlayer)) continue;
@@ -353,12 +383,13 @@ public class updater extends Thread {
         if (spellAction != null && player.getCurMana() >= AbstractPlayer.MAX_MANA / AbstractPlayer.MANA_SEGMENTS) {
             player.getCharacter().resetTimeout(spellAction.getCoolDown());
             player.decrementCurMana((int)((double)AbstractPlayer.MAX_MANA / (double)AbstractPlayer.MANA_SEGMENTS));
+            player.incrementCardProgress(100);
             spellAction.start();
         }
     }
 
     private AbstractSpellAction toSpellAction(Combo[] combo, AbstractPlayer p) {
-        for (Pair<Combo[], AbstractSpellActionFactory> comboPair : p.getCharacter().comboMapping) {
+        for (Pair<Combo[], ISpellActionFactory> comboPair : p.getCharacter().comboMapping) {
             if (Arrays.equals(combo,comboPair.fst)) return comboPair.snd.newSpell();
         }
         return null;
@@ -368,6 +399,7 @@ public class updater extends Thread {
         return cont.heldKeys.stream().map(x -> keyToCombo(intToKeys(x, p), 
             p.getFacingDirection())).filter(x -> x != null).toList().toArray(new Combo[0]);
     }
+
 
     private Keys pairToKeys(Pair<Integer, Long> keycode, HumanPlayer p) {
         return p.getInputAction(keycode.fst);
