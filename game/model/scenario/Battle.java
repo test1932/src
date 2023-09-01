@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import bodies.characters.Sakuya.Sakuya;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
+import bodies.projectiles.AbstractProjectile;
 import game.model.Controller;
 
 public class Battle {
@@ -86,6 +87,21 @@ public class Battle {
             return (walls[2].collides(s) && d < 0) || (walls[3].collides(s) && d > 0);
         }
         return (walls[0].collides(s) && d > 0) || (walls[1].collides(s) && d < 0);
+    }
+
+    //TODO for the love of god, clean this up
+    public Double[] projectileWallCollision(AbstractProjectile p) {
+        Double[] v = p.getVelocity();
+        Shape s = p.hitbox;
+        if ((v[0] > 0 && walls[3].collides(s) || v[0] < 0 && walls[2].collides(s)) && p.needsToCollide()) {
+            v[0] *= -p.getBounce();
+            p.collided();
+        }
+        if ((v[1] > 0 && walls[0].collides(s) || v[1] < 0 && walls[1].collides(s)) && p.needsToCollide()) {
+            v[1] *= -p.getBounce();
+            p.collided();
+        }
+        return v;
     }
 
     public Boolean collidesWall(Shape a) {

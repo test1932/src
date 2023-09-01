@@ -9,7 +9,6 @@ import javax.imageio.ImageIO;
 import bodies.characters.AbstractPlayer;
 
 public abstract class AbstractSpellcard {
-    protected AbstractSpellAction spellAction;
     protected int cost = 1;
     private AbstractPlayer owner;
     private BufferedImage cardImage;
@@ -19,14 +18,6 @@ public abstract class AbstractSpellcard {
 
     public AbstractSpellcard(AbstractPlayer player) {
         this.owner = player;
-    }
-
-    public AbstractSpellAction getSpellAction() {
-        return spellAction;
-    }
-
-    public void setSpellAction(AbstractSpellAction spellAction) {
-        this.spellAction = spellAction;
     }
 
     public void setImage() {
@@ -42,17 +33,17 @@ public abstract class AbstractSpellcard {
         for (int i = 0; i < cost; i++) {
             hand[i] = null;
         }
-        spellAction.start();
+        newSpellAction().start();
         animateSpellCard();
     }
+
+    public abstract AbstractSpellAction newSpellAction();
 
     public AbstractPlayer getOwner() {
         return owner;
     }
 
-    private void animateSpellCard() {
-        //TODO
-    }
+    public abstract void animateSpellCard();
 
     public BufferedImage getCardImage() {
         return cardImage;

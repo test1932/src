@@ -1,16 +1,15 @@
 package bodies.projectiles;
 
-import effects.IEffect;
 import actions.AbstractSpellAction;
 import bodies.characters.AbstractPlayer;
 
 // import actions.
 
 public class Projectile_Knife extends AbstractAttackProjectile{
-    public Projectile_Knife(int damage, IEffect effect, AbstractPlayer player, Integer[] pos, 
-            Double[] vel, AbstractSpellAction spellAction) {
-        super(damage, effect, player, pos, vel, spellAction); // effect often null
-        gravityApplies = true;
+    public Projectile_Knife(int maxBounce, double bounce, boolean gravityApplies, int damage,
+            AbstractPlayer player, Integer[] pos,  Double[] vel, AbstractSpellAction spellAction) {
+        super(maxBounce, bounce, damage, player, pos, vel, spellAction); // effect often null
+        this.gravityApplies = gravityApplies;
     }
 
     @Override

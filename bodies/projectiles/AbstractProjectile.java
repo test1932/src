@@ -13,16 +13,20 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private IEffect effect = null;
     private AbstractPlayer owner;
     private AbstractSpellAction spellAction;
-
+    protected boolean isMelee = false;
     public Long lastTime;
+    private double bounce;
+    private int collisions;
 
-    public AbstractProjectile(IEffect effect, AbstractPlayer player, Integer[] pos, 
+    public AbstractProjectile(int maxBounce, double bounce, IEffect effect, AbstractPlayer player, Integer[] pos, 
             Double[] vel, AbstractSpellAction spellAction) {
         this.effect = effect;
         this.owner = player;
         this.image = new Rectangle(pos[0], pos[1], 10, 20);
         this.spellAction = spellAction;
         this.hitbox = new Rectangle(pos[0], pos[1], 10, 20);
+        this.bounce = bounce;
+        this.collisions = maxBounce;
         setVelocity(vel);
         setPosition(pos);
     }
@@ -47,12 +51,36 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
         return effect;
     }
 
+    public void setEffect(IEffect e) {
+        this.effect = e;
+    }
+
     public Shape getImage() {
         return image;
     }
 
     public AbstractSpellAction getSpellAction() {
         return spellAction;
+    }
+
+    public boolean isMelee() {
+        return isMelee;
+    }
+
+    public void setBounce(double bounce) {
+        this.bounce = bounce;
+    }
+
+    public double getBounce() {
+        return bounce;
+    }
+
+    public boolean needsToCollide() {
+        return collisions > 0;
+    }
+
+    public void collided() {
+        collisions ++;
     }
 
     @Override

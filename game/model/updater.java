@@ -32,6 +32,8 @@ public class updater extends Thread {
     private Long keyPressTimout = Long.valueOf(0);
     private Game gameModel;
 
+    private final boolean DEBUG = false;
+
     // Constants.
     private final Long KEY_PRESS_TIMEOUT = 200l;
     private final int[] UP_DOWN_KEYCODES = {38,40};
@@ -89,6 +91,7 @@ public class updater extends Thread {
         switch (cont.game.gameState) {
             case Playing:
                 runScenario();
+                if (DEBUG) System.out.println(cont.heldKeys);
                 break;
             case Menu:
                 runMenu();
@@ -307,8 +310,17 @@ public class updater extends Thread {
     private void progressMotion() {
         handleMovement();
         updateVelocity();
+        applyStatusEffects();
         updatePositions();
         removeOldRecent();
+    }
+
+    private void applyStatusEffects() {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer player : cont.players) {
+            player.enactEffects(timeDiff);
+        }
+        cont.getBattle().bodiesLock.unlock();
     }
 
     private void checkFacingDirections() {
@@ -467,9 +479,7 @@ public class updater extends Thread {
             Double[] oldV = spellAction.getProjectiles().get(i).getVelocity();
             Double[] newV = oldV;
             if (spellAction.getProjectiles().get(i).gravityApplies) newV[1] += 0.002 * timeDiff;
-            for (int j = 0; j < 2; j++) {
-                newV[j] = cont.getBattle().outOfBounds(j, spellAction.getProjectiles().get(i).hitbox, newV[j])? 0.0: newV[j];
-            }
+            cont.getBattle().projectileWallCollision(spellAction.getProjectiles().get(i));
             spellAction.getProjectiles().get(i).setVelocity(newV);
         }
         spellAction.projectileLock.unlock();

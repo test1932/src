@@ -24,7 +24,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     protected AbstractSpellcard[] hand = new AbstractSpellcard[5];
 
     private Boolean facingLeft;
-    private List<IEffect> effects = new LinkedList<IEffect>();
+    private List<IEffect> effects = new ArrayList<IEffect>();
     public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
 
     private boolean isLeft;
@@ -57,6 +57,10 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public int getCurCardProgress() {
         return curCardProgress;
+    }
+
+    public void removeEffect(IEffect e) {
+        this.effects.remove(e);
     }
 
     public void setVel(Double[] velocity) {
@@ -192,18 +196,22 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public void nextCard() {
         if (curCardProgress < (MAX_CARD_PROGRESS / 5)) return;
-        System.out.println("next card");
         AbstractSpellcard oldHead = hand[0];
         for (int i = 0; i < hand.length - 1; i++) {
             hand[i] = hand[i + 1];
         }
-        System.out.println(curCardProgress);
         hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = oldHead;
     }
 
     public void playCard() {
-        System.out.println("playing card");
         if (hand[0] == null) return;
         hand[0].activateSpellCard();
+    }
+
+    public void enactEffects(Long timeDiff) {
+        for (int i = 0; i < effects.size(); i++) {
+            if (i >= effects.size()) continue;
+            effects.get(i).reduceTime(timeDiff);
+        }
     }
 }

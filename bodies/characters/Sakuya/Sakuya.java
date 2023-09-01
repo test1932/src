@@ -8,7 +8,9 @@ import javax.imageio.ImageIO;
 
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
+import bodies.characters.Sakuya.spellActions.CircleOfKnivesFactory;
 import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
+import bodies.characters.Sakuya.spellCards.TestSpellCard;
 
 public class Sakuya extends AbstractCharacter {
     private static String[] imagePaths = new String[]{
@@ -23,12 +25,28 @@ public class Sakuya extends AbstractCharacter {
     public Sakuya(AbstractPlayer player) {
         super(player, "Sakuya");
         setupSpellActions();
+        setupSpellCards();
+
         setupCharacter();
     }
 
-    private void setupSpellActions() {
-        for (int i = 0; i < comboMapping.size(); i++) {
+    //TODO Sakuya spell cards
+    @Override
+    protected void setupSpellCards() {
+        for (int i = 0; i < deck.length; i++) {
+            deck[i] = new TestSpellCard(getPlayer());
+        }
+    }
+
+    //TODO Sakuya spell actions
+    @Override
+    protected void setupSpellActions() {
+        for (int i = 0; i < 10; i++) {
             comboMapping.get(i).snd = new TestSpellActionFactory(getPlayer());   
+        }
+
+        for (int i = 10; i < comboMapping.size(); i++) {
+            comboMapping.get(i).snd = new CircleOfKnivesFactory(getPlayer());  
         }
     }
 

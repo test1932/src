@@ -26,7 +26,7 @@ public class Utsuho extends AbstractCharacter {
         setupCharacter();
     }
 
-    private void setupSpellActions() {
+    protected void setupSpellActions() {
         for (int i = 0; i < comboMapping.size(); i++) {
             comboMapping.get(i).snd = new TestSpellActionFactory(getPlayer());   
         }
@@ -62,5 +62,10 @@ public class Utsuho extends AbstractCharacter {
 
     public static BufferedImage getCutIn() {
         return cutIn;
+    }
+
+    @Override
+    protected void setupSpellCards() {
+        // TODO Utsuho spellcards
     }
 }

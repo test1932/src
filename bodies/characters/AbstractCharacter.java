@@ -2,8 +2,8 @@ package bodies.characters;
 
 import java.util.ArrayList;
 
-import actions.AbstractSpellcard;
 import actions.ISpellActionFactory;
+import actions.AbstractSpellcard;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {
@@ -67,6 +67,9 @@ public abstract class AbstractCharacter {
         this.player = player;
         this.name = name;
     }
+
+    protected abstract void setupSpellActions();
+    protected abstract void setupSpellCards();
 
     public AbstractPlayer getPlayer() {
         return player;

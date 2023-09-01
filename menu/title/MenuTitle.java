@@ -11,6 +11,7 @@ public class MenuTitle extends AbstractMenu {
         super(game, "Title", prevMenu, "assets/images/backgrounds/tempBackground.jpg");
         options = new AbstractOption[]{
             new OptionStory(game, this),
+            new OptionPractice(game, this),
             new OptionArcade(game, this),
             new OptionNetworkPlay(game, this),
             new OptionQuickGame(game, this),
