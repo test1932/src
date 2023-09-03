@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
+import bodies.characters.Misc.spellActions.BasicMeleeFactory;
 import bodies.characters.Sakuya.spellActions.CircleOfKnivesFactory;
 import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
 import bodies.characters.Sakuya.spellCards.TestSpellCard;
@@ -48,6 +49,8 @@ public class Sakuya extends AbstractCharacter {
         for (int i = 10; i < comboMapping.size(); i++) {
             comboMapping.get(i).snd = new CircleOfKnivesFactory(getPlayer());  
         }
+
+        comboMapping.get(comboMapping.size() - 1).snd = new BasicMeleeFactory(getPlayer());
     }
 
     public static void setupCharacter() {

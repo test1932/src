@@ -8,7 +8,7 @@ import bodies.characters.AbstractPlayer;
 public class Projectile_Knife extends AbstractAttackProjectile{
     public Projectile_Knife(int maxBounce, double bounce, boolean gravityApplies, int damage,
             AbstractPlayer player, Integer[] pos,  Double[] vel, AbstractSpellAction spellAction) {
-        super(maxBounce, bounce, damage, player, pos, vel, spellAction); // effect often null
+        super(maxBounce, bounce, damage, player, pos, vel, spellAction, false); // effect often null
         this.gravityApplies = gravityApplies;
     }
 

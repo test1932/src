@@ -3,8 +3,10 @@ package game.model;
 
 // standard library imports
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import bodies.characters.AbstractPlayer;
@@ -39,6 +41,8 @@ public class Controller {
     public LinkedList<Integer> heldKeys = new LinkedList<Integer>();
     public List<Pair<Integer, Long>> recentlyRel
         = Collections.synchronizedList(new LinkedList<Pair<Integer, Long>>());
+    public Set<Pair<Integer, Long>> keysToIgnore
+        = new HashSet<Pair<Integer, Long>>();
 
     /**
      * class representing link between game loop updating the model

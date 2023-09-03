@@ -19,10 +19,12 @@ public abstract class AbstractSpellAction extends Thread{
     private AbstractPlayer owner;
     private long coolDown;
     protected long castTime = 0l;
+    protected boolean costsMana;
 
     public ReentrantLock projectileLock = new ReentrantLock();
 
-    public AbstractSpellAction(AbstractPlayer player, long coolDown, long durationRem) {
+    public AbstractSpellAction(AbstractPlayer player, long coolDown, long durationRem, boolean costsMana) {
+        this.costsMana = costsMana;
         this.owner = player;
         this.coolDown = coolDown;
         this.durationRem = durationRem;
@@ -81,6 +83,10 @@ public abstract class AbstractSpellAction extends Thread{
         return projectiles;
     }
 
+    public boolean isCostsMana() {
+        return costsMana;
+    }
+
     public void addProjectile(AbstractProjectile projectile) {
         projectileLock.lock();
         this.projectiles.add(projectile);
@@ -98,7 +104,7 @@ public abstract class AbstractSpellAction extends Thread{
         this.owner.spellActions.remove(this);
         owner.spellActionLock.unlock();
         projectileLock.lock();
-        this.projectiles = null;
+        this.projectiles.clear();
         projectileLock.unlock();
     }
 

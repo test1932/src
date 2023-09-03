@@ -2,14 +2,16 @@ package bodies.characters;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import actions.AbstractSpellAction;
 import actions.AbstractSpellcard;
 import bodies.AbstractPhysicalBody;
+import effects.ExtremeKnockback;
 import effects.IEffect;
+import effects.Knockback;
 
 public abstract class AbstractPlayer extends AbstractPhysicalBody {
     private static final int LEFT_X = 120;
@@ -19,11 +21,11 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     public static final int MAX_CARD_PROGRESS = 10000;
     public static final int MANA_SEGMENTS = 5;
 
-    protected Double speedMultiplier = 1.0;
     protected int health = MAX_HEALTH;
     protected AbstractSpellcard[] hand = new AbstractSpellcard[5];
 
     private Boolean facingLeft;
+    private boolean isStunned = false;
     private List<IEffect> effects = new ArrayList<IEffect>();
     public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
 
@@ -73,14 +75,6 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     //getters and setters
-    public Double getSpeedMultiplier() {
-        return speedMultiplier;
-    }
-
-    public void setSpeedMultiplier(Double speedMultiplier) {
-        this.speedMultiplier = speedMultiplier;
-    }
-
     public int getHealth() {
         return health;
     }
@@ -102,16 +96,10 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         this.effects.add(effect);
     }
 
-    public void countDownEffects(Long timeDiff) {
+    public void removeKnockback() {
         effects = effects.stream()
-            .map(e -> reduceCount(e, timeDiff))
-            .filter(e -> !e.effectIsOver())
-            .toList();
-    }
-
-    private IEffect reduceCount(IEffect e, Long timeDiff) {
-        e.reduceTime(timeDiff);
-        return e;
+            .filter(e -> !(e instanceof Knockback || e instanceof ExtremeKnockback))
+            .collect(Collectors.toList());
     }
 
     public boolean isLeft() {
@@ -155,6 +143,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
             int maxIndex = character.deck.length - 1;
             int rindex = Math.min(maxIndex, (int)(Math.random() * 20));
             hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = character.deck[rindex];
+            System.out.println("card added to hand");
         }
     }
 
@@ -213,5 +202,13 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
             if (i >= effects.size()) continue;
             effects.get(i).reduceTime(timeDiff);
         }
+    }
+
+    public boolean isStunned() {
+        return isStunned;
+    }
+
+    public void setStunned(boolean isStunned) {
+        this.isStunned = isStunned;
     }
 }

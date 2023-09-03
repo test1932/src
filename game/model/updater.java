@@ -310,7 +310,6 @@ public class updater extends Thread {
     private void progressMotion() {
         handleMovement();
         updateVelocity();
-        applyStatusEffects();
         updatePositions();
         removeOldRecent();
     }
@@ -394,7 +393,9 @@ public class updater extends Thread {
         AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
         if (spellAction != null && player.getCurMana() >= AbstractPlayer.MAX_MANA / AbstractPlayer.MANA_SEGMENTS) {
             player.getCharacter().resetTimeout(spellAction.getCoolDown());
-            player.decrementCurMana((int)((double)AbstractPlayer.MAX_MANA / (double)AbstractPlayer.MANA_SEGMENTS));
+            if (spellAction.isCostsMana()) {
+                player.decrementCurMana((int)((double)AbstractPlayer.MAX_MANA / (double)AbstractPlayer.MANA_SEGMENTS));
+            }
             player.incrementCardProgress(100);
             spellAction.start();
         }
@@ -450,14 +451,14 @@ public class updater extends Thread {
      */
     private void updateVelocity() {
         cont.getBattle().bodiesLock.lock();
-        for (AbstractPhysicalBody body : cont.getBattle().bodies) {
-            Double[] oldV = body.getVelocity();
+        for (AbstractPlayer player : cont.players) {
+            Double[] oldV = player.getVelocity();
             Double[] newV = oldV;
-            if (body.gravityApplies) newV[1] += 0.003 * timeDiff;
-            for (int i = 0; i < 2; i++) {
-                newV[i] = cont.getBattle().outOfBounds(i, body.hitbox, newV[i])? 0.0: newV[i];
-            }
-            body.setVelocity(newV);
+            if (player.gravityApplies) newV[1] += 0.003 * timeDiff; // gravity
+
+            applyStatusEffects(); // knockback, slow down, etc...
+            player.setVelocity(newV);
+            cont.getBattle().playerOutOfBounds(player);
         }
         cont.getBattle().bodiesLock.unlock();
         updateSpellActionsProjectilesVelocity();

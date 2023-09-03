@@ -10,8 +10,17 @@ public class Knockback implements IEffect {
     private AbstractPlayer player;
     private AbstractProjectile projectile;
     private Double[] impactVelocity;
+    private boolean isFixed;
+    private Double[] magnitude;
 
     public Knockback(AbstractProjectile projectile) {
+        this.isFixed = false;
+        this.projectile = projectile;
+    }
+
+    public Knockback(AbstractProjectile projectile, Double magnitude) {
+        this.isFixed = true;
+        this.magnitude = new Double[]{magnitude, 0d};
         this.projectile = projectile;
     }
 
@@ -27,8 +36,7 @@ public class Knockback implements IEffect {
             player.removeEffect(this);
         }
         else {
-            double scalar = (timeRemaining / (double)INITIAL_TIME) ;
-            System.out.println(scalar);
+            double scalar = (timeRemaining / (double)INITIAL_TIME);
             player.setVel(new Double[]{impactVelocity[0] * scalar, impactVelocity[1] * scalar});
         }
     }
@@ -36,7 +44,10 @@ public class Knockback implements IEffect {
     @Override
     public void applyEffect(AbstractPlayer player) {
         this.player = player;
-        this.impactVelocity = projectile.getVelocity();
+        this.impactVelocity = isFixed ? magnitude : projectile.getVelocity();
+        if (isFixed && projectile.getPosition()[0] > player.getPosition()[0]) {
+            this.magnitude[0] *= -1;
+        }
     }
     
 }

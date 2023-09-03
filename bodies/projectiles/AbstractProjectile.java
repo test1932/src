@@ -2,6 +2,7 @@ package bodies.projectiles;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.util.List;
 
 import actions.AbstractSpellAction;
 import effects.IEffect;
@@ -10,7 +11,7 @@ import bodies.AbstractPhysicalBody;
 
 public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private Long timeRemaining;
-    private IEffect effect = null;
+    private List<IEffect> effects = null;
     private AbstractPlayer owner;
     private AbstractSpellAction spellAction;
     protected boolean isMelee = false;
@@ -18,15 +19,16 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
     private double bounce;
     private int collisions;
 
-    public AbstractProjectile(int maxBounce, double bounce, IEffect effect, AbstractPlayer player, Integer[] pos, 
-            Double[] vel, AbstractSpellAction spellAction) {
-        this.effect = effect;
+    public AbstractProjectile(int maxBounce, double bounce, List<IEffect> effects, AbstractPlayer player, Integer[] pos, 
+            Double[] vel, AbstractSpellAction spellAction, boolean isMelee) {
+        this.effects = effects;
         this.owner = player;
         this.image = new Rectangle(pos[0], pos[1], 10, 20);
         this.spellAction = spellAction;
         this.hitbox = new Rectangle(pos[0], pos[1], 10, 20);
         this.bounce = bounce;
         this.collisions = maxBounce;
+        this.isMelee = isMelee;
         setVelocity(vel);
         setPosition(pos);
     }
@@ -47,12 +49,12 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
         return owner;
     }
 
-    public IEffect getEffect() {
-        return effect;
+    public List<IEffect> getEffects() {
+        return effects;
     }
 
-    public void setEffect(IEffect e) {
-        this.effect = e;
+    public void setEffects(List<IEffect> effects) {
+        this.effects = effects;
     }
 
     public Shape getImage() {
@@ -86,5 +88,10 @@ public abstract class AbstractProjectile extends AbstractPhysicalBody {
     @Override
     public String toString() {
         return "projectile at (" + String.valueOf(getPosition()[0] + "," + String.valueOf(getPosition()[1]) + ")");
+    }
+
+    public void setHitbox(Rectangle s) {
+        this.hitbox = s;
+        this.image = s;
     }
 }

@@ -6,11 +6,11 @@ import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.imageio.ImageIO;
 
+import bodies.characters.AbstractPlayer;
 import bodies.characters.Sakuya.Sakuya;
 import bodies.AbstractPhysicalBody;
 import bodies.other.Wall;
@@ -19,7 +19,6 @@ import game.model.Controller;
 
 public class Battle {
     public Rectangle bounds;
-    public LinkedList<AbstractPhysicalBody> bodies = new LinkedList<AbstractPhysicalBody>();
     protected String pathBack = "assets/images/backgrounds/battle1.png";
     protected String pathBackBack = "assets/images/backgrounds/backbackground.jpg";
     public BufferedImage background;
@@ -42,13 +41,6 @@ public class Battle {
         this.cont.players[1].setCharacter(new Sakuya(this.cont.players[1]));
         bounds = new Rectangle(X, Y, WIDTH, HEIGHT);
         setupWalls();
-
-        for (AbstractPhysicalBody physicalBodyA : this.cont.players) {
-            bodiesLock.lock();
-            bodies.add(physicalBodyA);
-            bodiesLock.unlock();
-        }
-
         setBackground();
     }
 
@@ -87,6 +79,30 @@ public class Battle {
             return (walls[2].collides(s) && d < 0) || (walls[3].collides(s) && d > 0);
         }
         return (walls[0].collides(s) && d > 0) || (walls[1].collides(s) && d < 0);
+    }
+
+    //TODO tidy this mess as well
+    public void playerOutOfBounds(AbstractPlayer p) {
+        Shape s = p.hitbox;
+        Double[] v = p.getVelocity();
+
+        boolean wallLeftCollision = walls[2].collides(s) && v[0] < 0;
+        boolean wallRightCollision = walls[3].collides(s) && v[0] > 0;
+        
+        boolean wallFloorCollision = walls[0].collides(s) && v[1] > 0;
+        boolean wallCeilingCollision = walls[1].collides(s) && v[1] < 0;
+
+        if (wallLeftCollision || wallRightCollision) {
+            if (v[0] > 0.5)  v[1] += 0.5;
+            v[0] *= -0.3;
+            p.removeKnockback();
+
+        }
+
+        if (wallCeilingCollision || wallFloorCollision) {
+            v[1] *= 0;
+            p.removeKnockback();
+        }
     }
 
     //TODO for the love of god, clean this up

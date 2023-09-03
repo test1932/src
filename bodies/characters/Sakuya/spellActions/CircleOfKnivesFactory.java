@@ -12,7 +12,7 @@ public class CircleOfKnivesFactory implements ISpellActionFactory {
         private int count = 20;
 
         public CircleOfKnives(AbstractPlayer player) {
-            super(player, 300l, 2000);
+            super(player, 300l, 2000, true);
             castTime = 0l;
         }
 

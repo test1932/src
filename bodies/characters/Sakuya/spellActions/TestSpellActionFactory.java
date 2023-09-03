@@ -10,7 +10,7 @@ public class TestSpellActionFactory implements ISpellActionFactory {
     public static class TestSpellAction extends AbstractSpellAction {
 
         public TestSpellAction(AbstractPlayer player) {
-            super(player, 300l, 1000);
+            super(player, 300l, 1000, true);
             castTime = 0l;
         }
 
