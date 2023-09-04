@@ -14,9 +14,9 @@ import game.model.scenario.AbstractScenario;
 import game.model.scenario.AbstractScenario.ScenarioState;
 import menu.pause.MenuPause;
 
-import bodies.AbstractPhysicalBody;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.HumanPlayer;
+import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
 import menu.settings.config.KeyOption;
@@ -401,49 +401,33 @@ public class updater extends Thread {
         }
     }
 
-    private AbstractSpellAction toSpellAction(Combo[] combo, AbstractPlayer p) {
+    private AbstractSpellAction toSpellAction(Combo[] combo, HumanPlayer p) {
         for (Pair<Combo[], ISpellActionFactory> comboPair : p.getCharacter().comboMapping) {
-            if (Arrays.equals(combo,comboPair.fst)) return comboPair.snd.newSpell();
+            if (Arrays.equals(combo,comboPair.fst)) {
+                cont.ignoreKey(p.getKeyCode(AbstractCharacter.keyOfCombo(combo[combo.length - 1], p.getFacingDirection())));
+                return comboPair.snd.newSpell();
+            }
         }
         return null;
     }
 
     private Combo[] interpretPlayerKeyPresses(HumanPlayer p) {
-        return cont.heldKeys.stream().map(x -> keyToCombo(intToKeys(x, p), 
-            p.getFacingDirection())).filter(x -> x != null).toList().toArray(new Combo[0]);
+        cont.holdMutex.lock();
+        Combo[] res =  cont.heldKeys.stream()
+            .filter(x -> !cont.isIgnored(x))
+            .map(x -> AbstractCharacter.keyToCombo(intToKeys(x, p), p.getFacingDirection()))
+            .filter(x -> x != null).toList()
+            .toArray(new Combo[0]);
+        cont.holdMutex.unlock();
+        return res;
     }
 
-
-    private Keys pairToKeys(Pair<Integer, Long> keycode, HumanPlayer p) {
-        return p.getInputAction(keycode.fst);
-    }
+    // private Keys pairToKeys(Pair<Integer, Long> keycode, HumanPlayer p) {
+    //     return p.getInputAction(keycode.fst);
+    // }
 
     private Keys intToKeys(Integer keycode, HumanPlayer p) {
         return p.getInputAction(keycode);
-    }
-
-    private Combo keyToCombo(Keys key, boolean facingLeft) {
-        if (key == null) return null;
-        switch(key) {
-            case Up:
-                return Combo.Up;
-            case Down:
-                return Combo.Down;
-            case Left:
-                if (facingLeft) return Combo.Forward;
-                else return Combo.Back;
-            case Right:
-                if (facingLeft) return Combo.Back;
-                else return Combo.Forward;
-            case Weak:
-                return Combo.Weak;
-            case Strong:
-                return Combo.Strong;
-            case Melee:
-                return Combo.Melee;
-            default:
-                return null;
-        }
     }
 
     /**

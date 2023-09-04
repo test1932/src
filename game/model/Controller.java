@@ -26,8 +26,9 @@ public class Controller {
     private final long RECENT_TIMEOUT = 500l;
 
     // mutexes and references
-    private ReentrantLock recMutex = new ReentrantLock();
-    private ReentrantLock holdMutex = new ReentrantLock();
+    public ReentrantLock recMutex = new ReentrantLock();
+    public ReentrantLock holdMutex = new ReentrantLock();
+    public ReentrantLock ignoreKeysMutex = new ReentrantLock();
     private updater gameLoop;
     private AbstractScenario scenario;
 
@@ -41,8 +42,8 @@ public class Controller {
     public LinkedList<Integer> heldKeys = new LinkedList<Integer>();
     public List<Pair<Integer, Long>> recentlyRel
         = Collections.synchronizedList(new LinkedList<Pair<Integer, Long>>());
-    public Set<Pair<Integer, Long>> keysToIgnore
-        = new HashSet<Pair<Integer, Long>>();
+    public Set<Integer> keysToIgnore
+        = new HashSet<Integer>();
 
     /**
      * class representing link between game loop updating the model
@@ -91,6 +92,22 @@ public class Controller {
         holdMutex.unlock();
     }
 
+    public void ignoreKey(Integer keyid) {
+        ignoreKeysMutex.lock();
+        this.keysToIgnore.add(keyid);
+        ignoreKeysMutex.unlock();
+    }
+
+    public void stopIgnoringKey(Integer keyid) {
+        ignoreKeysMutex.lock();
+        keysToIgnore.remove(keyid);
+        ignoreKeysMutex.unlock();
+    }
+
+    public boolean isIgnored(Integer keyid) {
+        return keysToIgnore.contains(keyid);
+    }
+
     /**
      * remove keycode from the list of hed keys and add it to the list of
      * recently held keys.
@@ -102,6 +119,11 @@ public class Controller {
         holdMutex.unlock();
         recMutex.lock();
         this.recentlyRel.add(new Pair<Integer,Long>(keyid, RECENT_TIMEOUT));
+
+        ignoreKeysMutex.lock();
+        this.keysToIgnore.remove(keyid);
+        ignoreKeysMutex.unlock();
+
         recMutex.unlock();
     }
 

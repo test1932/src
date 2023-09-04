@@ -3,6 +3,7 @@ package bodies.characters;
 import java.util.ArrayList;
 
 import actions.ISpellActionFactory;
+import bodies.characters.HumanPlayer.Keys;
 import actions.AbstractSpellcard;
 import game.model.Pair;
 
@@ -61,6 +62,50 @@ public abstract class AbstractCharacter {
     protected long timeout;
     protected long spellTimeout;
     protected int meleeCombo = 3;
+
+    public static Keys keyOfCombo(Combo c, boolean facingLeft) {
+        switch (c) {
+            case Back:
+                return facingLeft ? Keys.Right : Keys.Left;
+            case Down:
+                return Keys.Down;
+            case Forward:
+                return facingLeft ? Keys.Left : Keys.Right;
+            case Melee:
+                return Keys.Melee;
+            case Strong:
+                return Keys.Strong;
+            case Up:
+                return Keys.Up;
+            case Weak:
+                return Keys.Weak;
+            default:
+                return null;
+            
+        }
+    }
+
+    public static Combo keyToCombo(Keys key, boolean facingLeft) {
+        if (key == null) return null;
+        switch(key) {
+            case Up:
+                return Combo.Up;
+            case Down:
+                return Combo.Down;
+            case Left:
+                return facingLeft ? Combo.Forward : Combo.Back;
+            case Right:
+                return facingLeft ? Combo.Back : Combo.Forward;
+            case Weak:
+                return Combo.Weak;
+            case Strong:
+                return Combo.Strong;
+            case Melee:
+                return Combo.Melee;
+            default:
+                return null;
+        }
+    }
 
     public AbstractCharacter(AbstractPlayer player, String name) {
         setup();
