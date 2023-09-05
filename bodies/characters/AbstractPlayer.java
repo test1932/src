@@ -26,6 +26,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     private Boolean facingLeft;
     private boolean isStunned = false;
+    private boolean isInvulnerable = false;
     private List<IEffect> effects = new ArrayList<IEffect>();
     public ArrayList<AbstractSpellAction> spellActions = new ArrayList<AbstractSpellAction>();
 
@@ -80,6 +81,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void setHealth(int health) {
+        if (this.isInvulnerable) return;
         this.health = health;
     }
 
@@ -92,6 +94,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void applyNewEffect(IEffect effect) {
+        if (this.isInvulnerable) return;
         effect.applyEffect(this);
         this.effects.add(effect);
     }
@@ -143,7 +146,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
             int maxIndex = character.deck.length - 1;
             int rindex = Math.min(maxIndex, (int)(Math.random() * 20));
             hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = character.deck[rindex];
-            System.out.println("card added to hand");
+            // System.out.println("card added to hand");
         }
     }
 
@@ -177,6 +180,8 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         this.health = MAX_HEALTH;
         this.curMana = MAX_MANA;
         this.curCardProgress = 0;
+        this.isStunned = false;
+        this.isInvulnerable = false;
     }
 
     public AbstractSpellcard getHeldCard() {
@@ -198,6 +203,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void enactEffects(Long timeDiff) {
+        // System.out.println(effects);
         for (int i = 0; i < effects.size(); i++) {
             if (i >= effects.size()) continue;
             effects.get(i).reduceTime(timeDiff);
@@ -210,5 +216,13 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     public void setStunned(boolean isStunned) {
         this.isStunned = isStunned;
+    }
+
+    public boolean isInvulnerable() {
+        return isInvulnerable;
+    }
+
+    public void setInvulnerable(boolean isInvulnerable) {
+        this.isInvulnerable = isInvulnerable;
     }
 }

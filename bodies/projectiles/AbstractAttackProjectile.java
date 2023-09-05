@@ -28,8 +28,8 @@ public abstract class AbstractAttackProjectile extends AbstractProjectile {
         p.setHealth(p.getHealth() - damage);
         if (this.getEffects() != null) {
             for (IEffect e : this.getEffects()) {
-                e.applyEffect(p);
                 p.applyNewEffect(e);
+                // e.applyEffect(p);
             }
         }
         this.getSpellAction().removeProjectile(this);

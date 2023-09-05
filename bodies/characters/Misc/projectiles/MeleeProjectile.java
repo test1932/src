@@ -7,7 +7,9 @@ import bodies.characters.AbstractPlayer;
 import bodies.projectiles.AbstractAttackProjectile;
 import effects.ExtremeKnockback;
 import effects.IEffect;
+import effects.Invulnerable;
 import effects.Knockback;
+import effects.Stun;
 
 // import actions.
 
@@ -38,9 +40,12 @@ public class MeleeProjectile extends AbstractAttackProjectile {
         // System.out.println(isKnockback);
         if (isKnockback) {
             effects.add(new ExtremeKnockback(getOwner()));
+            effects.add(new Stun(2000l));
+            effects.add(new Invulnerable(2000l));
         }
         else {
             effects.add(new Knockback(this, 1d));
+            effects.add(new Stun(500l));
         }
         this.setEffects(effects);
     }
@@ -49,8 +54,9 @@ public class MeleeProjectile extends AbstractAttackProjectile {
         p.setHealth(p.getHealth() - damage);
         if (this.getEffects() != null) {
             for (IEffect e : this.getEffects()) {
-                e.applyEffect(p);
+                // swapping these two lines will cause a mess for invulnerable
                 p.applyNewEffect(e);
+                // e.applyEffect(p);
             }
         }
         this.getSpellAction().removeAllProjectiles();

@@ -32,6 +32,9 @@ public class Display extends JFrame implements Observer {
     private Rectangle dialogueArea = new Rectangle(25, HEIGHT - 150, WIDTH - 50, 150);
     private Color menuAreaColour = new Color(200, 200, 200, 150);
 
+    private boolean menuIsReset = false;
+    private int optionDisplayOffset = 0; 
+
     private final int OPTION_MIN_X = 75;
     private final int OPTION_MIN_Y = 200;
     public static final int WIDTH = 960;
@@ -105,6 +108,11 @@ public class Display extends JFrame implements Observer {
 
     }
 
+    private void resetMenu() {
+        this.optionDisplayOffset = 0;
+        this.menuIsReset = true;
+    }
+
     private void drawSprite(BufferedImage img, Graphics2D g2D, boolean isLeft, int leftX) {
         double ratio = (double)HEIGHT / img.getHeight();
         int width = (int)(img.getWidth() * ratio);
@@ -135,6 +143,7 @@ public class Display extends JFrame implements Observer {
                 g2D.setColor(Color.BLACK);
                 paintMenu(g2D); break;
             case Playing:
+                if (!this.menuIsReset) resetMenu();
                 g2D.setColor(Color.WHITE);
                 paintScenario(g2D); break;
         }
@@ -236,10 +245,12 @@ public class Display extends JFrame implements Observer {
         paintOptions(g2D);
     }
 
+    //TODO
     private void paintOptions(Graphics2D g2D) {
-        int offset = OPTION_MIN_Y;
+        int offset = OPTION_MIN_Y - (optionDisplayOffset * 30);
         for (AbstractOption option : cont.game.getCurMenu().getOptions()) {
-            g2D.drawString(option.displayText, OPTION_MIN_X, offset += 30);
+            if ((offset += 30) < OPTION_MIN_Y) continue;
+            g2D.drawString(option.displayText, OPTION_MIN_X, offset);
             if (option instanceof KeyOption) {
                 g2D.drawString(String.valueOf(((KeyOption)option).getKeyID()), OPTION_MIN_X + 100, offset);
             }

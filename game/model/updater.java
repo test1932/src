@@ -360,7 +360,7 @@ public class updater extends Thread {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
             if (!(player instanceof HumanPlayer)) continue;
-            if (player.getCharacter().getTimeout() <= 0) {
+            if (player.getCharacter().getTimeout() <= 0 && !player.isStunned()) {
                 interpretKeyPresses((HumanPlayer)player);
                 // System.out.println(cont.recentlyRel);
             }
@@ -492,10 +492,9 @@ public class updater extends Thread {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
             HumanPlayer human = (HumanPlayer)player;
-            double x = getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right));
+            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : 0;
             double y = oldV[1];
-            if (cont.isKeyHeld(human.getKeyCode(Keys.Up)) && 
-                (player.getVelocity()[1] == 0)) {
+            if (cont.isKeyHeld(human.getKeyCode(Keys.Up)) && (player.getVelocity()[1] == 0) && !player.isStunned()) {
                 y -= 1.3;
             }
             player.setVel(new Double[]{x, y});
