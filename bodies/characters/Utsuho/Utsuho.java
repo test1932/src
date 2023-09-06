@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import actions.AbstractSpellAction;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
-import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
+import bodies.characters.Misc.spellActions.TestSpellActionFactory;
 
 public class Utsuho extends AbstractCharacter {
     private static String[] imagePaths = new String[]{

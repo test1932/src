@@ -19,6 +19,7 @@ import game.model.Controller;
 
 public class Battle {
     public Rectangle bounds;
+    //TODO move these
     protected String pathBack = "assets/images/backgrounds/battle1.png";
     protected String pathBackBack = "assets/images/backgrounds/backbackground.jpg";
     public BufferedImage background;

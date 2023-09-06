@@ -6,6 +6,8 @@ import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Sakuya.Sakuya;
 import bodies.characters.Sakuya.SakuyaScenarioFactory;
+import bodies.characters.Seija.Seija;
+import bodies.characters.Seija.SeijaScenarioFactory;
 import game.Game;
 import game.model.Pair;
 import game.model.scenario.AbstractScenarioFactory;
@@ -19,6 +21,7 @@ public class MenuCharacter extends AbstractMenu {
 
     private void setupCharacters() {
         names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SakuyaScenarioFactory(null, game.getCont()), new Sakuya(player)));
+        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SeijaScenarioFactory(null, game.getCont()), new Seija(player)));
     }
 
     public MenuCharacter(Game game, AbstractMenu prevMenu, AbstractPlayer player) {
@@ -30,7 +33,7 @@ public class MenuCharacter extends AbstractMenu {
 
         int i = 0;
         for (Pair<AbstractScenarioFactory, AbstractCharacter> name : names) {
-            options[i] = new CharacterOption(game, this, name.snd.getName(), player, name.snd, name.fst);
+            options[i++] = new CharacterOption(game, this, name.snd.getName(), player, name.snd, name.fst);
         }
 
         options[names.size()] = new OptionBack(game, this);

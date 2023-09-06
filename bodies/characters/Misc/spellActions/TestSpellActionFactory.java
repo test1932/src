@@ -1,4 +1,4 @@
-package bodies.characters.Sakuya.spellActions;
+package bodies.characters.Misc.spellActions;
 
 import actions.AbstractSpellAction;
 import actions.ISpellActionFactory;

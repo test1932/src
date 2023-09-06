@@ -3,7 +3,7 @@ package bodies.characters.Sakuya.spellCards;
 import actions.AbstractSpellAction;
 import actions.AbstractSpellcard;
 import bodies.characters.AbstractPlayer;
-import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
+import bodies.characters.Misc.spellActions.TestSpellActionFactory;
 
 public class TestSpellCard extends AbstractSpellcard {
 
