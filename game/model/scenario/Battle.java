@@ -30,7 +30,7 @@ public class Battle {
     public final int X = 0;
     public final int Y = 50;
     public final int WIDTH = 960;
-    public final int HEIGHT = 450;
+    public final int HEIGHT = 550;
 
     private Controller cont;
     private boolean isOver = false;
@@ -131,6 +131,10 @@ public class Battle {
         Area areaA = new Area(s);
         areaA.intersect(new Area(bounds));
         return areaA.equals(new Area(s));
+    }
+
+    public boolean isOnGround(Shape s, boolean isReversed) {
+        return isReversed ? walls[1].collides(s) : walls[0].collides(s);
     }
 
     public Battle getNextBattle() {

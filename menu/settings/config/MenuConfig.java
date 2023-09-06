@@ -10,13 +10,13 @@ import menu.OptionBack;
 public class MenuConfig extends AbstractMenu {
     public MenuConfig(Game game, AbstractMenu prevMenu, HumanPlayer player) {
         super(game, "Config", prevMenu, "assets/images/backgrounds/config.jpg");
-        options = new AbstractOption[9];
         Keys[] keyArr =  Keys.values();
+        options = new AbstractOption[keyArr.length + 1];
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < keyArr.length; i++) {
             options[i] = new KeyOption(game, this, keyArr[i].toString(), keyArr[i], player);
         }
-        options[8] = new OptionBack(game, this);
+        options[keyArr.length] = new OptionBack(game, this);
     }
 
     @Override

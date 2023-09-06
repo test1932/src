@@ -23,6 +23,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
 
     protected int health = MAX_HEALTH;
     protected AbstractSpellcard[] hand = new AbstractSpellcard[5];
+    private int cardCount = 0;
 
     private Boolean facingLeft;
     private boolean isStunned = false;
@@ -67,7 +68,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void setVel(Double[] velocity) {
-        //Something was here TODO
+        //TODO Something was here
         setVelocity(velocity);
     }
 
@@ -140,13 +141,12 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void incrementCardProgress(int increment) {
-        int temp = curCardProgress;
         decrementCardProgress(-increment);
-        if (!((temp / (MAX_CARD_PROGRESS / 5)) - (curCardProgress / (MAX_CARD_PROGRESS / 5)) == 0)) {
+        if (cardCount < (curCardProgress / (MAX_CARD_PROGRESS / 5))) {
             int maxIndex = character.deck.length - 1;
             int rindex = Math.min(maxIndex, (int)(Math.random() * 20));
             hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = character.deck[rindex];
-            // System.out.println("card added to hand");
+            cardCount++;
         }
     }
 
@@ -198,8 +198,9 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void playCard() {
-        if (hand[0] == null) return;
+        if (hand[0] == null) throw new RuntimeException("no card?");
         hand[0].activateSpellCard();
+        cardCount--;
     }
 
     public void enactEffects(Long timeDiff) {

@@ -4,11 +4,12 @@ import java.util.ArrayList;
 
 import actions.ISpellActionFactory;
 import bodies.characters.HumanPlayer.Keys;
+import actions.AbstractSpellAction;
 import actions.AbstractSpellcard;
 import game.model.Pair;
 
 public abstract class AbstractCharacter {
-    public enum Combo {Forward, Back, Up, Down, Melee, Weak, Strong}
+    public enum Combo {Forward, Back, Up, Down, Melee, Weak, Strong, Dash}
 
     public ArrayList<Pair<Combo[], ISpellActionFactory>> comboMapping
         = new ArrayList<Pair<Combo[], ISpellActionFactory>>();
@@ -17,38 +18,49 @@ public abstract class AbstractCharacter {
         return new Pair<Combo[],ISpellActionFactory>(keys, combo);
     }
 
+    protected ISpellActionFactory dashFactory;
+
     protected AbstractSpellcard[] deck = new AbstractSpellcard[20];
     protected ArrayList<AbstractSpellcard> library = new ArrayList<AbstractSpellcard>();
 
     public void setup() {
         // appending to end
         Combo[][] combos = new Combo[][] {
-            {Combo.Down, Combo.Forward, Combo.Melee},
-            {Combo.Down, Combo.Forward, Combo.Weak},
-            {Combo.Down, Combo.Forward, Combo.Strong},
+            {Combo.Down, Combo.Forward, Combo.Melee},   //0 v > m
+            {Combo.Down, Combo.Forward, Combo.Weak},    //1 v > w
+            {Combo.Down, Combo.Forward, Combo.Strong},  //2 v > s
 
-            {Combo.Down, Combo.Back, Combo.Melee},
-            {Combo.Down, Combo.Back, Combo.Weak},
-            {Combo.Down, Combo.Back, Combo.Strong},
+            {Combo.Down, Combo.Back, Combo.Melee},      //3 v < m
+            {Combo.Down, Combo.Back, Combo.Weak},       //4 v < w
+            {Combo.Down, Combo.Back, Combo.Strong},     //5 v < s
 
-            {Combo.Up, Combo.Weak},
-            {Combo.Down, Combo.Weak},
-            {Combo.Back, Combo.Weak},
-            {Combo.Forward, Combo.Weak},
+            {Combo.Up, Combo.Weak},                     //6 ^ w
+            {Combo.Down, Combo.Weak},                   //7 v w
+            {Combo.Back, Combo.Weak},                   //8 < w
+            {Combo.Forward, Combo.Weak},                //9 > w
 
-            {Combo.Up, Combo.Strong},
-            {Combo.Down, Combo.Strong},
-            {Combo.Back, Combo.Strong},
-            {Combo.Forward, Combo.Strong},
+            {Combo.Up, Combo.Strong},                   //10 ^ s
+            {Combo.Down, Combo.Strong},                 //11 v s
+            {Combo.Back, Combo.Strong},                 //12 < s
+            {Combo.Forward, Combo.Strong},              //13 > s
 
-            {Combo.Up, Combo.Melee},
-            {Combo.Down, Combo.Melee},
-            {Combo.Back, Combo.Melee},
-            {Combo.Forward, Combo.Melee},
+            {Combo.Up, Combo.Melee},                    //14 ^ m
+            {Combo.Down, Combo.Melee},                  //15 v m
+            {Combo.Back, Combo.Melee},                  //16 < m    (block)
+            {Combo.Forward, Combo.Melee},               //17 > m
 
-            {Combo.Melee},
-            {Combo.Weak},
-            {Combo.Strong}
+            {Combo.Melee},                              //18 m
+            {Combo.Weak},                               //19 w
+            {Combo.Strong},                             //20 s
+
+            {Combo.Forward, Combo.Dash},                //21 > d
+            {Combo.Back, Combo.Dash},                   //22 < d
+            {Combo.Up, Combo.Dash},                     //23 ^ d
+            {Combo.Down, Combo.Dash},                   //24 v d
+            {Combo.Forward, Combo.Down, Combo.Dash},    //25 > v d
+            {Combo.Forward, Combo.Up, Combo.Dash},      //26 > ^ d
+            {Combo.Back,  Combo.Down, Combo.Dash},      //27 < v d
+            {Combo.Back,  Combo.Up, Combo.Dash},        //28 < ^ d
         };
 
         for (int i = 0; i < combos.length; i++) {
@@ -79,10 +91,10 @@ public abstract class AbstractCharacter {
                 return Keys.Up;
             case Weak:
                 return Keys.Weak;
-            default:
-                return null;
-            
+            case Dash:
+                return Keys.Dash;
         }
+        throw new RuntimeException("No! being here is bad!");
     }
 
     public static Combo keyToCombo(Keys key, boolean facingLeft) {
@@ -102,6 +114,8 @@ public abstract class AbstractCharacter {
                 return Combo.Strong;
             case Melee:
                 return Combo.Melee;
+            case Dash:
+                return Combo.Dash;
             default:
                 return null;
         }
@@ -115,6 +129,9 @@ public abstract class AbstractCharacter {
 
     protected abstract void setupSpellActions();
     protected abstract void setupSpellCards();
+    public AbstractSpellAction getDash() {
+        return this.dashFactory.newSpell();
+    }
 
     public AbstractPlayer getPlayer() {
         return player;

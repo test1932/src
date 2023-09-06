@@ -6,8 +6,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import bodies.Direction;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
+import bodies.characters.Misc.spellActions.BasicDashFactory;
 import bodies.characters.Misc.spellActions.BasicMeleeFactory;
 import bodies.characters.Sakuya.spellActions.CircleOfKnivesFactory;
 import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;
@@ -42,15 +44,15 @@ public class Sakuya extends AbstractCharacter {
     //TODO Sakuya spell actions
     @Override
     protected void setupSpellActions() {
-        for (int i = 0; i < 10; i++) {
-            comboMapping.get(i).snd = new TestSpellActionFactory(getPlayer());   
+        for (int i = 0; i < 21; i++) {
+            comboMapping.get(i).snd = new CircleOfKnivesFactory(getPlayer());
         }
 
-        for (int i = 10; i < comboMapping.size(); i++) {
-            comboMapping.get(i).snd = new CircleOfKnivesFactory(getPlayer());  
+        int i = 21;
+        for (Direction dir: Direction.values()) {
+            comboMapping.get(i).snd = new BasicDashFactory(getPlayer(), dir);
+            i++;
         }
-
-        comboMapping.get(comboMapping.size() - 1).snd = new BasicMeleeFactory(getPlayer());
     }
 
     public static void setupCharacter() {

@@ -3,7 +3,7 @@ package bodies.characters;
 import java.util.HashMap;
 
 public class HumanPlayer extends AbstractPlayer {
-    public enum Keys {Left, Right, Up, Down, Graze, Melee, Weak, Strong, PlayCard, NextCard, Dash}
+    public enum Keys {Left, Right, Up, Down, Melee, Weak, Strong, PlayCard, NextCard, Dash}
     public Keys[] keysArr = Keys.values();
     private HashMap<Keys, Integer> keyMapping = new HashMap<Keys, Integer>();
     private HashMap<Integer, Keys> inverseKeyMapping = new HashMap<Integer, Keys>();
@@ -14,12 +14,12 @@ public class HumanPlayer extends AbstractPlayer {
     }
 
     private void initP1Mapping() {
-        Integer[] codes = {37, 39, 38, 40, 86, 90, 88, 67, 68, 83, 65};
+        Integer[] codes = {37, 39, 38, 40, 90, 88, 67, 68, 83, 65};
         initMapping(codes);
     }
 
     private void initP2Mapping() {
-        Integer[] codes = {65, 68, 87, 83, -1, -1, -1, -1, -1, -1, -1}; //TODO
+        Integer[] codes = {65, 68, 87, 83, -1, -1, -1, -1, -1, -1}; //TODO keybindings
         initMapping(codes);
     }
 

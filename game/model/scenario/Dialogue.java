@@ -6,6 +6,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
+import game.view.Display;
+
 public class Dialogue {
     private BufferedImage spriteLeft;
     private BufferedImage spriteRight;
@@ -15,8 +17,8 @@ public class Dialogue {
     private boolean isLeft;
     private Dialogue next;
 
-    public static final int LINE_1_TEXT_Y = 430;
-    public static final int LINE_2_TEXT_Y = 460;
+    public static final int LINE_1_TEXT_Y = Display.HEIGHT - 100;
+    public static final int LINE_2_TEXT_Y = Display.HEIGHT - 70;
     public static final int TEXT_X = 50;
     public static final int LEFT_X = 0;
     public static final int WIDTH = 400;

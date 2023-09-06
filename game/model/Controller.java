@@ -86,11 +86,11 @@ public class Controller {
         }
     }
 
-    public void unholdKey(Integer keyid) {
-        holdMutex.lock();
-        this.heldKeys.remove(keyid);
-        holdMutex.unlock();
-    }
+    // public void unholdKey(Integer keyid) {
+    //     holdMutex.lock();
+    //     this.heldKeys.remove(keyid);
+    //     holdMutex.unlock();
+    // }
 
     public void ignoreKey(Integer keyid) {
         ignoreKeysMutex.lock();

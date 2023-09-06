@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import actions.AbstractSpellAction;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Sakuya.spellActions.TestSpellActionFactory;

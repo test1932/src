@@ -37,8 +37,8 @@ public class Display extends JFrame implements Observer {
 
     private final int OPTION_MIN_X = 75;
     private final int OPTION_MIN_Y = 200;
-    public static final int WIDTH = 960;
-    public static final int HEIGHT = 540;
+    public static final int WIDTH = 1000;
+    public static final int HEIGHT = 650;
 
     private ProgressBar[] healthBars = new ProgressBar[]{
         new ProgressBar(false, 50, 50, 300, 20),

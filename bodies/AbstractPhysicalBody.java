@@ -8,6 +8,7 @@ public class AbstractPhysicalBody {
     public Rectangle hitbox = new Rectangle();
     protected Rectangle image;
     public boolean gravityApplies = false;
+    protected boolean gravityReversed = false;
     private Integer[] position;
     private Double[] velocity = {0.0,0.0};
 
@@ -56,5 +57,17 @@ public class AbstractPhysicalBody {
 
     public Shape getImage() {
         return image;
+    }
+
+    public boolean isGravityReversed() {
+        return gravityReversed;
+    }
+
+    public void setGravityReversed(boolean gravityReversed) {
+        this.gravityReversed = gravityReversed;
+    }
+
+    public void reverseGravity() {
+        this.gravityReversed = !this.gravityReversed;
     }
 }

@@ -438,7 +438,8 @@ public class updater extends Thread {
         for (AbstractPlayer player : cont.players) {
             Double[] oldV = player.getVelocity();
             Double[] newV = oldV;
-            if (player.gravityApplies) newV[1] += 0.003 * timeDiff; // gravity
+            int reversed = player.isGravityReversed() ? -1 : 1;
+            if (player.gravityApplies) newV[1] += 0.003 * reversed * timeDiff; // gravity
 
             applyStatusEffects(); // knockback, slow down, etc...
             player.setVelocity(newV);
@@ -492,17 +493,28 @@ public class updater extends Thread {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
             HumanPlayer human = (HumanPlayer)player;
-            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : 0;
+            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : oldV[0];
             double y = oldV[1];
-            if (cont.isKeyHeld(human.getKeyCode(Keys.Up)) && (player.getVelocity()[1] == 0) && !player.isStunned()) {
-                y -= 1.3;
-            }
+            y = handleJump(human, y);
             player.setVel(new Double[]{x, y});
             if (playerColliding(true, cont.players[(i++ + 1) % 2].hitbox, player)) {
                 player.setVel(new Double[]{0d, y});
             };
         }
         cont.getBattle().bodiesLock.unlock();
+    }
+
+    private double handleJump(HumanPlayer human, double y) {
+        int key = human.isGravityReversed() ? human.getKeyCode(Keys.Down) : human.getKeyCode(Keys.Up);
+        int change = human.isGravityReversed() ? 1 : -1;
+
+        if (cont.isKeyHeld(key) 
+                && (human.getVelocity()[1] == 0) 
+                && (cont.getBattle().isOnGround(human.hitbox, human.isGravityReversed()))
+                && !human.isStunned()) {
+            return y + (1.3 * change);
+        }
+        return y;
     }
 
     /**
