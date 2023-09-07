@@ -8,6 +8,7 @@ import actions.AbstractSpellAction;
 import actions.ISpellActionFactory;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Misc.projectiles.MeleeProjectile;
+import effects.Stun;
 
 public class BasicMeleeFactory implements ISpellActionFactory {
     private final long COMBO_TIMEOUT = 500l;
@@ -38,6 +39,7 @@ public class BasicMeleeFactory implements ISpellActionFactory {
 
         @Override
         protected void startAction() {
+            getOwner().applyNewEffect(new Stun(500l));
             setupProjectiles();
         }
 

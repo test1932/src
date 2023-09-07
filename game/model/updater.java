@@ -559,7 +559,7 @@ public class updater extends Thread {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
             HumanPlayer human = (HumanPlayer)player;
-            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : oldV[0];
+            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : 0;
             double y = oldV[1];
             y = handleJump(human, y);
             player.setVel(new Double[]{x, y});
@@ -570,6 +570,12 @@ public class updater extends Thread {
         cont.getBattle().bodiesLock.unlock();
     }
 
+    /**
+     * handles jumping input for a HumanPlayer.
+     * @param human HumanPlayer to handle jumping for.
+     * @param y old y velocity value.
+     * @return new y velocity value.
+     */
     private double handleJump(HumanPlayer human, double y) {
         int key = human.isGravityReversed() ? human.getKeyCode(Keys.Down) : human.getKeyCode(Keys.Up);
         int change = human.isGravityReversed() ? 1 : -1;
@@ -614,6 +620,9 @@ public class updater extends Thread {
         checkFacingDirections();
     }
 
+    /**
+     * updates projectile positions for all spell actions.
+     */
     private void updateSpellActionProjectilePositions() {
         for (AbstractPlayer player : cont.players) {
             player.spellActionLock.lock();
@@ -624,6 +633,10 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * updates projectile positions for a specific spell action.
+     * @param spellAction spell action to update projectile positions of.
+     */
     private void updateProjectilePositions(AbstractSpellAction spellAction) {
         spellAction.projectileLock.lock();
         for (int i = 0; i < spellAction.getProjectiles().size(); i++) {

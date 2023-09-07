@@ -206,7 +206,6 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     }
 
     public void enactEffects(Long timeDiff) {
-        // System.out.println(effects);
         for (int i = 0; i < effects.size(); i++) {
             if (i >= effects.size()) continue;
             effects.get(i).reduceTime(timeDiff);

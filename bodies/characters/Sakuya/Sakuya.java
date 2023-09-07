@@ -12,8 +12,10 @@ import bodies.characters.AbstractPlayer;
 import bodies.characters.Misc.spellActions.BasicDashFactory;
 import bodies.characters.Misc.spellActions.BasicMeleeFactory;
 import bodies.characters.Misc.spellActions.TestSpellActionFactory;
+import bodies.characters.Misc.spellActions.UpMeleeFactory;
 import bodies.characters.Sakuya.spellActions.CircleOfKnivesFactory;
 import bodies.characters.Sakuya.spellCards.TestSpellCard;
+import bodies.characters.Misc.spellActions.ForwardMeleeFactory;
 
 public class Sakuya extends AbstractCharacter {
     private static String[] imagePaths = new String[]{
@@ -44,9 +46,10 @@ public class Sakuya extends AbstractCharacter {
     //TODO Sakuya spell actions
     @Override
     protected void setupSpellActions() {
-        for (int i = 0; i < 21; i++) {
-            comboMapping.get(i).snd = new BasicMeleeFactory(getPlayer());
-        }
+        comboMapping.get(20).snd = new CircleOfKnivesFactory(getPlayer());
+        comboMapping.get(18).snd = new BasicMeleeFactory(getPlayer());
+        comboMapping.get(17).snd = new ForwardMeleeFactory(getPlayer());
+        comboMapping.get(14).snd = new UpMeleeFactory(getPlayer());
 
         int i = 21;
         for (Direction dir: Direction.values()) {
