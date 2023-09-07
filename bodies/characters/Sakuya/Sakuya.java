@@ -45,7 +45,7 @@ public class Sakuya extends AbstractCharacter {
     @Override
     protected void setupSpellActions() {
         for (int i = 0; i < 21; i++) {
-            comboMapping.get(i).snd = new CircleOfKnivesFactory(getPlayer());
+            comboMapping.get(i).snd = new BasicMeleeFactory(getPlayer());
         }
 
         int i = 21;

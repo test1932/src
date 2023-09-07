@@ -146,6 +146,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
             int maxIndex = character.deck.length - 1;
             int rindex = Math.min(maxIndex, (int)(Math.random() * 20));
             hand[(curCardProgress / (MAX_CARD_PROGRESS / 5)) - 1] = character.deck[rindex];
+            System.out.println("added card");
             cardCount++;
         }
     }
@@ -200,6 +201,7 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
     public void playCard() {
         if (hand[0] == null) throw new RuntimeException("no card?");
         hand[0].activateSpellCard();
+        decrementCardProgress(AbstractPlayer.MAX_CARD_PROGRESS / 5);
         cardCount--;
     }
 

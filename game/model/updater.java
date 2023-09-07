@@ -182,6 +182,9 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * resets player positions and starts the scenario.
+     */
     private void handleScenarioSetup() {
         for (AbstractPlayer player : cont.players) {
             player.resetPosition();
@@ -189,6 +192,9 @@ public class updater extends Thread {
         cont.getScenario().setCurScenarioState(ScenarioState.PRE_BATTLE);
     }
 
+    /**
+     * applied gravity to players outside of battle.
+     */
     private void outOfBattleMotion() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
@@ -199,7 +205,9 @@ public class updater extends Thread {
         updatePositions();
     }
     
-    
+    /**
+     * methods run as part of the main game loop for battles.
+     */
     private void runBattle() {
         progressMotion();
         handlePause();
@@ -207,6 +215,9 @@ public class updater extends Thread {
         checkIfBattleOver();
     }
 
+    /**
+     * handles user progressing post battle dialogue.
+     */
     private void handlePostDialogue() {
         if (keyPressTimout <= 0 && cont.isKeyHeld(90)) {
             // z
@@ -217,6 +228,9 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * progresses to next post battle dialogue and moves to next scenario if complete.
+     */
     private void keyPressDialogue() {
         keyPressTimout = KEY_PRESS_TIMEOUT;
         if (cont.getScenario().nextDialogue()) {
@@ -232,6 +246,9 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * progresses to next pre battle dialogue if user provides input.
+     */
     private void handlePreDialogue() {
         if (keyPressTimout <= 0) {
             // z
@@ -245,17 +262,25 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * makes call to current scenario to update whether the battle is over.
+     */
     private void checkIfBattleOver() {
         cont.getScenario().checkIfBattleOver();
-        // if (cont.getScenario().getBattle().isOver()) System.out.println("battle is over");
     }
 
+    /**
+     * increments mana, handles spellcard input, and handles user action input.
+     */
     private void progressBattle() {
         handleSpellCards();
         handlePlayerActions();
         incrementMana();
     }
 
+    /**
+     * checks if player can perform spellcard actions and runs those actions.
+     */
     private void handleSpellCards() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
@@ -271,6 +296,10 @@ public class updater extends Thread {
         cont.getBattle().bodiesLock.unlock();
     }
 
+    /**
+     * changes/plays current spell card for HumanPlayer as appropriate.
+     * @param human HumanPlayer to change/play spellcards for.
+     */
     private void handleHumanSpellCards(HumanPlayer human) {
         if(cont.heldKeys.contains(human.getKeyCode(Keys.NextCard))) {
             human.nextCard();
@@ -280,11 +309,13 @@ public class updater extends Thread {
                 && human.getCurCardProgress() >= AbstractPlayer.MAX_CARD_PROGRESS / 5) {
             human.getCharacter().resetSpellTimeout(human.getHeldCard().timeout);
             human.playCard();
-            human.decrementCardProgress(AbstractPlayer.MAX_CARD_PROGRESS / 5);
             keyPressTimout = KEY_PRESS_TIMEOUT;
         }
     }
 
+    /**
+     * increments mana for each player.
+     */
     private void incrementMana() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
@@ -314,6 +345,9 @@ public class updater extends Thread {
         removeOldRecent();
     }
 
+    /**
+     * runs the effects of status effects for each player.
+     */
     private void applyStatusEffects() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
@@ -322,6 +356,9 @@ public class updater extends Thread {
         cont.getBattle().bodiesLock.unlock();
     }
 
+    /**
+     * updates facing directions of players based on the other player's position.
+     */
     private void checkFacingDirections() {
         cont.getBattle().bodiesLock.lock();
         AbstractPlayer player1 = cont.players[0];
@@ -331,15 +368,13 @@ public class updater extends Thread {
         cont.getBattle().bodiesLock.unlock();
     }
 
-    private void playerCollision() {
-        cont.getBattle().bodiesLock.lock();
-        if (!cont.players[0].collides(cont.players[1].hitbox)) {
-             cont.getBattle().bodiesLock.unlock();
-             return;
-        }
-        cont.getBattle().bodiesLock.unlock();
-    }
-
+    /**
+     * checks for collision between a Shape and AbstractPlayer.
+     * @param isX whether collision is in x.
+     * @param s shape AbstractPlayer is checking collision with.
+     * @param p AbstractPlayer to check collision.
+     * @return whether collision is occuring.
+     */
     public Boolean playerColliding(boolean isX, Shape s, AbstractPlayer p) {
         cont.getBattle().bodiesLock.lock();
         if (p.getVelocity()[isX ? 0 : 1] == 0) return false;
@@ -356,6 +391,9 @@ public class updater extends Thread {
         return retval;
     }
 
+    /**
+     * performs actions based on user input for each character.
+     */
     private void handlePlayerActions() {
         cont.getBattle().bodiesLock.lock();
         for (AbstractPlayer player : cont.players) {
@@ -372,6 +410,9 @@ public class updater extends Thread {
         checkForCollisions();
     }
 
+    /**
+     * checks for collisions between spell action projectiles and players.
+     */
     private void checkForCollisions() {
         for (AbstractPlayer player : cont.players) {
             player.spellActionLock.lock();
@@ -382,12 +423,19 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * makes call to handle collision between spellaction and player.
+     */
     private void checkSpellActionForCollisions(AbstractSpellAction spellAction) {
         spellAction.projectileLock.lock();
         spellAction.collision(cont.otherPlayer(spellAction.getOwner()));
         spellAction.projectileLock.unlock();
     }
 
+    /**
+     * starts spell action threads for a given player based on user input.
+     * @param player player to handle starting spellactions for.
+     */
     private void interpretKeyPresses(HumanPlayer player) {
         Combo[] playerKeys = interpretPlayerKeyPresses(player);
         AbstractSpellAction spellAction = toSpellAction(playerKeys, player);
@@ -401,6 +449,12 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * returns spell action corresponding to combo of keypresses, null if not recognised.
+     * @param combo sequence of keypresses.
+     * @param p player to check for spell action.
+     * @return spell action corresponding to combo (if applicable).
+     */
     private AbstractSpellAction toSpellAction(Combo[] combo, HumanPlayer p) {
         for (Pair<Combo[], ISpellActionFactory> comboPair : p.getCharacter().comboMapping) {
             if (Arrays.equals(combo,comboPair.fst)) {
@@ -411,6 +465,11 @@ public class updater extends Thread {
         return null;
     }
 
+    /**
+     * 
+     * @param p
+     * @return
+     */
     private Combo[] interpretPlayerKeyPresses(HumanPlayer p) {
         cont.holdMutex.lock();
         Combo[] res =  cont.heldKeys.stream()
@@ -449,6 +508,9 @@ public class updater extends Thread {
         updateSpellActionsProjectilesVelocity();
     }
 
+    /**
+     * progresses spell actions.
+     */
     public void updateSpellActionsProjectilesVelocity() {
         for (AbstractPlayer player : cont.players) {
             player.spellActionLock.lock();
@@ -459,6 +521,10 @@ public class updater extends Thread {
         }
     }
 
+    /**
+     * progresses spell action.
+     * @param spellAction spell action to progress.
+     */
     private void updateProjectilesVelocity(AbstractSpellAction spellAction) {
         spellAction.projectileLock.lock();
         for (int i = 0; i < spellAction.getProjectiles().size(); i++) {
@@ -544,7 +610,6 @@ public class updater extends Thread {
             cont.getBattle().changePlayerPos(pIndex++, newPos);
         }
         cont.getBattle().bodiesLock.unlock();
-        playerCollision();
         updateSpellActionProjectilePositions();
         checkFacingDirections();
     }
