@@ -212,10 +212,14 @@ public class updater extends Thread {
      * methods run as part of the main game loop for battles.
      */
     private void runBattle() {
-        progressMotion();
-        handlePause();
-        progressBattle();
-        checkIfBattleOver();
+        try {
+            progressMotion();
+            handlePause();
+            progressBattle();
+            checkIfBattleOver();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
