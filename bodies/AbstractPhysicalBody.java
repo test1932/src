@@ -9,6 +9,10 @@ public class AbstractPhysicalBody {
     protected Rectangle image;
     public boolean gravityApplies = false;
     protected boolean gravityReversed = false;
+
+    public boolean frictionApplies = false;
+    protected Double frictionMultiplier = null;
+
     private Integer[] position;
     private Double[] velocity = {0.0,0.0};
 
@@ -69,5 +73,47 @@ public class AbstractPhysicalBody {
 
     public void reverseGravity() {
         this.gravityReversed = !this.gravityReversed;
+    }
+
+    public Rectangle getHitbox() {
+        return hitbox;
+    }
+
+    public void setHitbox(Rectangle hitbox) {
+        this.hitbox = hitbox;
+    }
+
+    public void setImage(Rectangle image) {
+        this.image = image;
+    }
+
+    public boolean isGravityApplies() {
+        return gravityApplies;
+    }
+
+    public void setGravityApplies(boolean gravityApplies) {
+        this.gravityApplies = gravityApplies;
+    }
+
+    public boolean isFrictionApplies() {
+        return frictionApplies;
+    }
+
+    public void setFrictionApplies(boolean frictionApplies) {
+        this.frictionApplies = frictionApplies;
+    }
+
+    public Double getFrictionMultiplier() {
+        return frictionMultiplier;
+    }
+
+    public void setFrictionMultiplier(Double frictionMultiplier) {
+        this.frictionMultiplier = frictionMultiplier;
+    }
+
+    public void applyFriction() {
+        Double[] oldv = getVelocity();
+        oldv[0] *= frictionMultiplier;
+        setVelocity(oldv);
     }
 }

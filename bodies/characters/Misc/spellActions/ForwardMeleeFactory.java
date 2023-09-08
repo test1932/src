@@ -1,13 +1,10 @@
 package bodies.characters.Misc.spellActions;
 
 import java.awt.Rectangle;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import actions.AbstractSpellAction;
 import actions.ISpellActionFactory;
 import bodies.characters.AbstractPlayer;
-import bodies.characters.Misc.projectiles.MeleeProjectile;
 
 public class ForwardMeleeFactory implements ISpellActionFactory {
     public static class ForwardMelee extends BasicMeleeFactory.AbstractBasicMelee {

@@ -28,8 +28,11 @@ public class ExtremeKnockback implements IEffect {
         this.player = player;
         Integer[] pp = player.getPosition();
         Integer[] ap = attacker.getPosition();
-        diffPosition = new Double[]{(double)(pp[0] - ap[0]) * MULTIPLIER, 
-                                    (double)(pp[1] - ap[1] - 10) * MULTIPLIER};
+        double x = (double)(pp[0] - ap[0]) * MULTIPLIER ;
+        double y = (double)(pp[1] - ap[1] - 20) * MULTIPLIER;
+        double scalar = Math.abs(3 / Math.max(Math.abs(x), Math.abs(y)));
+        diffPosition = new Double[]{x * scalar, 
+                                    y * scalar};
     }
     
 }

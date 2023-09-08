@@ -51,6 +51,8 @@ public abstract class AbstractPlayer extends AbstractPhysicalBody {
         this.image = this.hitbox;
         this.facingLeft = !isLeft;
         gravityApplies = true;
+        frictionApplies = true;
+        frictionMultiplier = 0.9;
     }
 
     public void resetPosition() {

@@ -50,18 +50,19 @@ public class BasicDashFactory implements ISpellActionFactory {
 
         @Override
         protected void startAction() {
+            getOwner().setFrictionApplies(false);
             getOwner().setVelocity(velocity);
             // System.out.println( getOwner().getVelocity());
             IEffect stunEffect = new Stun(this.durationRem);
             IEffect invulnerableEffect = new Invulnerable(this.durationRem);
             getOwner().applyNewEffect(stunEffect);
             getOwner().applyNewEffect(invulnerableEffect);
-            // System.out.println( getOwner().getVelocity()[0]);
         }
 
         @Override
         protected void endAction() {
             removeAllProjectiles();
+            getOwner().setFrictionApplies(true);
         }
 
         @Override

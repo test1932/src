@@ -20,8 +20,8 @@ public class MenuCharacter extends AbstractMenu {
     private AbstractPlayer player;
 
     private void setupCharacters() {
-        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SakuyaScenarioFactory(null, game.getCont()), new Sakuya(player)));
-        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SeijaScenarioFactory(null, game.getCont()), new Seija(player)));
+        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SakuyaScenarioFactory(game.getCont()), new Sakuya(player)));
+        names.add(new Pair<AbstractScenarioFactory,AbstractCharacter>(new SeijaScenarioFactory(game.getCont()), new Seija(player)));
     }
 
     public MenuCharacter(Game game, AbstractMenu prevMenu, AbstractPlayer player) {

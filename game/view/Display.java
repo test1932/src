@@ -28,7 +28,7 @@ public class Display extends JFrame implements Observer {
 
     private Font mainFont = new Font("sansserif", Font.PLAIN, 20);
     private Font monospaceFont = new Font("monospace", Font.PLAIN, 20);
-    private Rectangle menuArea = new Rectangle(50, 50, 300, 450);
+    private Rectangle menuArea = new Rectangle(50, 50, 300, 500);
     private Rectangle dialogueArea = new Rectangle(25, HEIGHT - 150, WIDTH - 50, 150);
     private Color menuAreaColour = new Color(200, 200, 200, 150);
 

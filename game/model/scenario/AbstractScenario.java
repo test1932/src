@@ -1,5 +1,8 @@
 package game.model.scenario;
 
+import game.model.Controller;
+
+//TODO dialogue needs to be moved to files
 public abstract class AbstractScenario {
     public enum ScenarioState{PRE_BATTLE, BATTLE, POST_BATTLE, SETUP};
 
@@ -10,10 +13,12 @@ public abstract class AbstractScenario {
     private AbstractScenario nextScenario;
     private ScenarioState curScenarioState = ScenarioState.SETUP;
 
-    public AbstractScenario(Battle battle, AbstractScenario nextScenario) {
+    public AbstractScenario(Battle battle, AbstractScenario nextScenario, Controller cont) {
         this.battle = battle;
         this.nextScenario = nextScenario;
     }
+
+    public abstract void setCharacters();
 
     public boolean nextDialogue() {
         if (battle.isOver()) {
@@ -57,5 +62,10 @@ public abstract class AbstractScenario {
 
     public void setCurScenarioState(ScenarioState curScenarioState) {
         this.curScenarioState = curScenarioState;
+    }
+
+    public void setup() {
+        setCharacters();
+        this.curScenarioState = ScenarioState.PRE_BATTLE;
     }
 }

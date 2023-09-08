@@ -4,6 +4,7 @@ import java.awt.Shape;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import actions.AbstractSpellAction;
@@ -19,6 +20,7 @@ import bodies.characters.HumanPlayer;
 import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
+import bodies.projectiles.AbstractProjectile;
 import menu.settings.config.KeyOption;
 
 public class updater extends Thread {
@@ -188,8 +190,9 @@ public class updater extends Thread {
     private void handleScenarioSetup() {
         for (AbstractPlayer player : cont.players) {
             player.resetPosition();
+            player.reset();
         }
-        cont.getScenario().setCurScenarioState(ScenarioState.PRE_BATTLE);
+        cont.getScenario().setup();
     }
 
     /**
@@ -242,6 +245,7 @@ public class updater extends Thread {
             }
             else {
                 cont.setScenario(cont.getScenario().getNextScenario());
+
             }
         }
     }
@@ -506,6 +510,36 @@ public class updater extends Thread {
         }
         cont.getBattle().bodiesLock.unlock();
         updateSpellActionsProjectilesVelocity();
+        updateFriction();
+    }
+
+    private void updateFriction() {
+        updatePlayerFriction();
+    }
+
+    private void updatePlayerFriction() {
+        cont.getBattle().bodiesLock.lock();
+        for (AbstractPlayer p : cont.players) {
+            if(p.frictionApplies && cont.getBattle().collidesYBounds(p.hitbox)) p.applyFriction();
+            updateProjectileFriction(p);
+        }
+        cont.getBattle().bodiesLock.unlock();
+    }
+
+    private void updateProjectileFriction(AbstractPlayer p) {
+        for (int i = 0; i < p.spellActions.size(); i++) {
+            ArrayList<AbstractProjectile> projectiles = p.spellActions.get(i).getProjectiles();
+            updateSpellProjectileFriction(p, projectiles);
+        }
+    }
+
+    private void updateSpellProjectileFriction(AbstractPlayer p, ArrayList<AbstractProjectile> projectiles) {
+        for (int j = 0; j < projectiles.size(); j++) {
+            if (projectiles.get(j).frictionApplies 
+                    && cont.getBattle().collidesYBounds(projectiles.get(j).hitbox)) {
+                projectiles.get(j).applyFriction();
+            }
+        }
     }
 
     /**
@@ -530,7 +564,7 @@ public class updater extends Thread {
         for (int i = 0; i < spellAction.getProjectiles().size(); i++) {
             Double[] oldV = spellAction.getProjectiles().get(i).getVelocity();
             Double[] newV = oldV;
-            if (spellAction.getProjectiles().get(i).gravityApplies) newV[1] += 0.002 * timeDiff;
+            if (spellAction.getProjectiles().get(i).gravityApplies) newV[1] += 0.0015 * timeDiff;
             cont.getBattle().projectileWallCollision(spellAction.getProjectiles().get(i));
             spellAction.getProjectiles().get(i).setVelocity(newV);
         }
@@ -559,7 +593,7 @@ public class updater extends Thread {
             if (!(player instanceof HumanPlayer)) continue;
             Double[] oldV = player.getVelocity();
             HumanPlayer human = (HumanPlayer)player;
-            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : 0;
+            double x = !player.isStunned() ? getVelocityMag(human.getKeyCode(Keys.Left), human.getKeyCode(Keys.Right)) : oldV[0];
             double y = oldV[1];
             y = handleJump(human, y);
             player.setVel(new Double[]{x, y});

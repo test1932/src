@@ -4,12 +4,9 @@ import game.model.Controller;
 
 //fake factory
 public abstract class AbstractScenarioFactory {
-    protected Battle battle;
-    protected AbstractScenario next;
     protected Controller cont;
 
-    public AbstractScenarioFactory(AbstractScenario nextScenario, Controller cont) {
-        this.next = nextScenario;
+    public AbstractScenarioFactory(Controller cont) {
         this.cont = cont;
     }
 

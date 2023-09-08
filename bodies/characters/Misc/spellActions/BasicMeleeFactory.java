@@ -8,6 +8,7 @@ import actions.AbstractSpellAction;
 import actions.ISpellActionFactory;
 import bodies.characters.AbstractPlayer;
 import bodies.characters.Misc.projectiles.MeleeProjectile;
+import bodies.projectiles.AbstractProjectile;
 import effects.Stun;
 
 public class BasicMeleeFactory implements ISpellActionFactory {
@@ -60,6 +61,14 @@ public class BasicMeleeFactory implements ISpellActionFactory {
                 curTimeIndex = curTimeIndex == projectiles.length - 1 ? null : curTimeIndex + 1;
             }
             setProjectilePositions();
+            projectileLock.lock();
+            for (AbstractProjectile p : projectiles) {
+                Integer[] pos = p.getPosition();
+                // account for facing backwards
+                pos[0] -= (int)(0.5 * p.hitbox.getWidth() - (0.5 * getOwner().hitbox.getWidth()));
+                p.setPosition(pos);
+            }
+            projectileLock.unlock();
         }
         
     }

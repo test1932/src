@@ -74,14 +74,6 @@ public class Battle {
         this.cont.players[playerIndex].setPosition(newPos);
     }
 
-    public Boolean outOfBounds(int isX, Shape s, Double d) {
-        if (d == 0) return false;
-        if (isX == 0) {
-            return (walls[2].collides(s) && d < 0) || (walls[3].collides(s) && d > 0);
-        }
-        return (walls[0].collides(s) && d > 0) || (walls[1].collides(s) && d < 0);
-    }
-
     //TODO tidy this mess as well
     public void playerOutOfBounds(AbstractPlayer p) {
         Shape s = p.hitbox;
@@ -95,7 +87,7 @@ public class Battle {
 
         if (wallLeftCollision || wallRightCollision) {
             if (v[0] > 0.5)  v[1] += 0.5;
-            v[0] *= -0.3;
+            v[0] = 0d;
             p.removeKnockback();
 
         }
@@ -126,6 +118,10 @@ public class Battle {
             if (wall.collides(a)) return true;
         }
         return false;
+    }
+
+    public Boolean collidesYBounds(Shape a) {
+        return walls[0].collides(a) || walls[1].collides(a);
     }
 
     public boolean shapeInBounds(Shape s) {
