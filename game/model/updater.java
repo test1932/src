@@ -13,6 +13,7 @@ import game.Game;
 import game.Game.GameState;
 import game.model.scenario.AbstractScenario;
 import game.model.scenario.AbstractScenario.ScenarioState;
+import menu.AbstractOption;
 import menu.pause.MenuPause;
 
 import bodies.characters.AbstractPlayer;
@@ -21,6 +22,7 @@ import bodies.characters.AbstractCharacter;
 import bodies.characters.AbstractCharacter.Combo;
 import bodies.characters.HumanPlayer.Keys;
 import bodies.projectiles.AbstractProjectile;
+import menu.title.networkPlay.TumblerOption;
 import menu.settings.config.KeyOption;
 
 public class updater extends Thread {
@@ -107,7 +109,7 @@ public class updater extends Thread {
     private void runMenu() {
         // System.out.println(keyPressTimout);
         if (keyPressTimout <= 0) {
-            if (!setConfig()) handleArrows();
+            if (!setConfig() && !setTumbler()) handleArrows();
             handleSelection();
             if (gameModel.gameState != GameState.Menu) return;
         }
@@ -116,20 +118,63 @@ public class updater extends Thread {
         }
     }
 
+    private boolean setTumbler() {
+        mutexHeld.lock();
+        AbstractOption option = cont.game.getCurMenu().getSelected();
+        if (option instanceof TumblerOption && cont.heldKeys.size() != 0) {
+            TumblerOption tumblerOption = (TumblerOption)cont.game.getCurMenu().getSelected();
+            if (cont.isKeyHeld(10)) {
+                tumblerOption.toggleSelected();
+                keyPressTimout = KEY_PRESS_TIMEOUT;
+            }
+            else if (tumblerOption.isSelected()) {
+                handleTumblerInput(tumblerOption);
+                mutexHeld.unlock();
+                keyPressTimout = KEY_PRESS_TIMEOUT;
+                return true;
+            }
+        }
+        mutexHeld.unlock();
+        return false;
+    }
+
+    private void handleTumblerInput(TumblerOption t) {
+        switch (cont.heldKeys.getLast()) {
+            case 37: // left
+                t.prevDigit();
+                break;
+            
+            case 38: // up
+                t.incrementDigit();
+                break;
+
+            case 39: // right
+                t.nextDigit();
+                break;
+
+            case 40: // down
+                t.decrementDigit();
+                break;
+        
+            default:
+                break;
+        }
+    }
+
     /**
      * configures key binding.
      */
     private boolean setConfig() {
         mutexHeld.lock();
-        if (cont.game.getCurMenu().getSelected() instanceof KeyOption &&
-                cont.heldKeys.size() != 0) {
-            KeyOption option = (KeyOption)cont.game.getCurMenu().getSelected();
+        AbstractOption option = cont.game.getCurMenu().getSelected();
+        if (option instanceof KeyOption && cont.heldKeys.size() != 0) {
+            KeyOption keyOption = (KeyOption)cont.game.getCurMenu().getSelected();
             if (cont.isKeyHeld(10)) {
-                option.toggleSelected();
+                keyOption.toggleSelected();
                 keyPressTimout = KEY_PRESS_TIMEOUT;
             }
-            else if (option.isSelected()) {
-                option.setKeyID(cont.heldKeys.getLast());
+            else if (keyOption.isSelected()) {
+                keyOption.setKeyID(cont.heldKeys.getLast());
                 mutexHeld.unlock();
                 keyPressTimout = KEY_PRESS_TIMEOUT;
                 return true;

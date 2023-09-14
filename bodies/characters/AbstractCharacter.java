@@ -53,6 +53,7 @@ public abstract class AbstractCharacter {
             {Combo.Weak},                               //19 w
             {Combo.Strong},                             //20 s
 
+            //move
             {Combo.Forward, Combo.Dash},                //21 > d
             {Combo.Back, Combo.Dash},                   //22 < d
             {Combo.Up, Combo.Dash},                     //23 ^ d

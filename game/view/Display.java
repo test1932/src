@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import listeners.Observer;
 import menu.AbstractOption;
 import menu.settings.config.KeyOption;
+import menu.title.networkPlay.TumblerOption;
 
 public class Display extends JFrame implements Observer {
     private Controller cont;
@@ -251,12 +252,19 @@ public class Display extends JFrame implements Observer {
         for (AbstractOption option : cont.game.getCurMenu().getOptions()) {
             if ((offset += 30) < OPTION_MIN_Y) continue;
             g2D.drawString(option.displayText, OPTION_MIN_X, offset);
-            if (option instanceof KeyOption) {
-                g2D.drawString(String.valueOf(((KeyOption)option).getKeyID()), OPTION_MIN_X + 100, offset);
-            }
+            paintAdditionalOptionDetail(g2D, option, offset);
         }
         setYUnderline(cont.game.getCurMenu().getSelectedIndex());
         highlightSelected(g2D);
+    }
+
+    private void paintAdditionalOptionDetail(Graphics2D g2D, AbstractOption option, int offset) {
+        if (option instanceof KeyOption) {
+            g2D.drawString(String.valueOf(((KeyOption)option).getKeyID()), OPTION_MIN_X + 100, offset);
+        }
+        else if (option instanceof TumblerOption) {
+            g2D.drawString("aaa", OPTION_MIN_X + 100, offset);
+        }
     }
 
     private void highlightSelected(Graphics2D g2D) {
