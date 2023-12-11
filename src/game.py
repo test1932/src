@@ -16,6 +16,9 @@ class game:
         self.state = game.MENU
         self.currentMenu = mainMenu(self)
         
+        #game state
+        self.players = (None, None)
+        
         #graphics
         self.bgRect = pygame.Surface((700,500))
         self.bgRect.set_alpha(128)

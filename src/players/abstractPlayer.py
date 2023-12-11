@@ -11,6 +11,7 @@ class abstractPlayer:
         self.facingDirection = abstractPlayer.RIGHT
         
         self.playerBody = None # physical body object representing the player
+        self.playerSpells = []
         
     def getImage(self):
         """acquires the composited image of the player with effects.
