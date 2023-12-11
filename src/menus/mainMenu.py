@@ -1,12 +1,14 @@
 from menus.options.exitOption import exitOption
+from menus.options.networkOption import networkOption
 from menus.abstractMenu import abstractMenu
 
 class mainMenu(abstractMenu):
-    def __init__(self) -> None:
-        super().__init__("Second Realm of Fallen Star")
-        self.options = [
-                exitOption()
+    def __init__(self, gameObj) -> None:
+        super().__init__("Main", None, "assets/images/backgrounds/tempBackground.jpg",\
+            gameObj.WIDTH, gameObj.HEIGHT)
+        self.__gameObj = gameObj
+        options = [
+                networkOption(self.__gameObj, self),
+                exitOption(self)
             ]
-        
-    def getOptions(self):
-        return self.options
+        self.setOptions(options)

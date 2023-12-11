@@ -1,6 +1,7 @@
 import socket
 import pygame
 from menus.mainMenu import mainMenu
+from menus.options.textField import textField
 
 class game:
     MENU = 0
@@ -9,31 +10,51 @@ class game:
     def __init__(self, width = 1000, height = 600):
         self.WIDTH = width
         self.HEIGHT = height
-        self.titleFont = pygame.font.Font(pygame.font.get_default_font(), 60)
-        self.baseFont = pygame.font.Font(pygame.font.get_default_font(), 30)
+        self.titleFont = pygame.font.Font(pygame.font.get_default_font(), 40)
+        self.baseFont = pygame.font.Font(pygame.font.get_default_font(), 20)
         self.screen = pygame.display.set_mode([self.WIDTH,self.HEIGHT])
         self.state = game.MENU
-        self.currentMenu = mainMenu()
-        self.currentSelection = 0
+        self.currentMenu = mainMenu(self)
+        
+        #graphics
+        self.bgRect = pygame.Surface((700,500))
+        self.bgRect.set_alpha(128)
+        self.bgRect.fill((255,255,255))
+        
+    def setCurrentMenu(self, newMenu):
+        self.currentMenu = newMenu
         
     def displayMenu(self):
+        self.screen.blit(self.currentMenu.getBackground(),(0,0))
         x = self.WIDTH // 8
         y = self.HEIGHT // 8
+        self.screen.blit(self.bgRect, (x - 10,y - 20))
         self.screen.blit(self.titleFont.render(self.currentMenu.getName(),False,(0,0,0)), (x,y))
         for i,option in enumerate(self.currentMenu.getOptions()):
-            yInc = (i + 1) * 50 + self.HEIGHT // 8
+            yInc = (i + 1) * 30 + self.HEIGHT // 8
             self.screen.blit(self.baseFont.render(option.getName(), False, (0,0,0)),(x, y + yInc))
-            if i == self.currentSelection:
-                pygame.draw.line(self.screen, (255,0,0), (x, y + yInc + 35), (x + self.WIDTH // 8, y + yInc + 35), 3)
+            if i == self.currentMenu.getPos():
+                pygame.draw.line(self.screen, (255,0,0), (x, y + yInc + 25), (x + self.WIDTH // 8, y + yInc + 25), 3)
+            if type(option) == textField:
+                text = option.getShowText() if self.currentMenu.getFocus() else option.getText()
+                self.screen.blit(self.baseFont.render(text, False, (0,0,0)), (x + self.WIDTH // 2, y + yInc))
                 
     def handleMenuInput(self,event):
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
-                self.currentSelection = (self.currentSelection - 1) % len(self.currentMenu.getOptions)
+                self.currentMenu.decrementCursor()
             elif event.key == pygame.K_DOWN:
-                self.currentSelection = (self.currentSelection + 1) % len(self.currentMenu.getOptions)
+                self.currentMenu.incrementCursor()
             elif event.key == pygame.K_RETURN:
-                self.currentMenu.getOptions()[self.currentSelection].handler()
+                self.currentMenu.runHandler()
+            elif event.key == pygame.K_RIGHT:
+                self.currentMenu.incrementOptionCursor()
+            elif event.key == pygame.K_LEFT:
+                self.currentMenu.decrementOptionCursor()
+            elif event.key == pygame.K_BACKSPACE:
+                self.currentMenu.backSpace()
+            else:
+                self.currentMenu.putKey(event.unicode)
 
     def handleGameInput(self,event):
         pass
