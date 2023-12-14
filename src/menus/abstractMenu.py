@@ -4,13 +4,17 @@ from menus.options.textField import textField
 import pygame
 
 class abstractMenu:
-    def __init__(self, name, previousMenu, bgPath, width, height, options = []) -> None:
+    def __init__(self, name, previousMenu, bgPath, gameObj, options = []) -> None:
+        self.__gameObj = gameObj
         self.__name = name
         self.previousMenu = previousMenu
         self.__focus = False
         self.__options = options
         self.__pos = 0
-        self.background = pygame.transform.scale(pygame.image.load(bgPath), (width, height))
+        self.background = pygame.transform.scale(pygame.image.load(bgPath), (gameObj.WIDTH, gameObj.HEIGHT))
+    
+    def getGameObj(self):
+        return self.__gameObj
         
     def getName(self):
         return self.__name

@@ -2,6 +2,7 @@ import socket
 import pygame
 from menus.mainMenu import mainMenu
 from menus.options.textField import textField
+from menus.characterMenu import characterMenu
 
 class game:
     MENU = 0
@@ -17,7 +18,7 @@ class game:
         self.currentMenu = mainMenu(self)
         
         #game state
-        self.players = (None, None)
+        self.players = [None, None]
         
         #graphics
         self.bgRect = pygame.Surface((700,500))
@@ -26,6 +27,16 @@ class game:
         
     def setCurrentMenu(self, newMenu):
         self.currentMenu = newMenu
+        
+    def setState(self, newState):
+        assert newState in [game.GAME, game.MENU]
+        self.state = newState
+        
+    def setOpponent(self, opponent):
+        self.players[1] = opponent
+        
+    def getPlayers(self):
+        return self.players
         
     def displayMenu(self):
         self.screen.blit(self.currentMenu.getBackground(),(0,0))
@@ -36,7 +47,17 @@ class game:
         for i,option in enumerate(self.currentMenu.getOptions()):
             yInc = (i + 1) * 30 + self.HEIGHT // 8
             self.screen.blit(self.baseFont.render(option.getName(), False, (0,0,0)),(x, y + yInc))
-            if i == self.currentMenu.getPos():
+            
+            if type(self.currentMenu) == characterMenu:
+                if i == self.currentMenu.selectors[0]:
+                    pygame.draw.line(self.screen, (255,0,0),\
+                                    (x, y + yInc + 25), \
+                                    (x + self.WIDTH // 16, y + yInc + 25), 3)
+                if i == self.currentMenu.selectors[1]:
+                    pygame.draw.line(self.screen, (0,0,255), \
+                                    (x + self.WIDTH // 16, y + yInc + 25), \
+                                    (x + self.WIDTH // 8, y + yInc + 25), 3)
+            elif i == self.currentMenu.getPos():
                 pygame.draw.line(self.screen, (255,0,0), (x, y + yInc + 25), (x + self.WIDTH // 8, y + yInc + 25), 3)
             if type(option) == textField:
                 text = option.getShowText() if self.currentMenu.getFocus() else option.getText()
@@ -68,6 +89,7 @@ class game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    exit()
                 if self.state == game.MENU:
                     self.handleMenuInput(event)
                 elif self.state == game.GAME:
