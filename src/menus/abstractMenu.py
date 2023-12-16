@@ -38,6 +38,9 @@ class abstractMenu:
     def getPos(self):
         return self.__pos
     
+    def setPos(self, pos):
+        self.__pos = pos
+    
     def setOptions(self, options):
         self.__options = options
         

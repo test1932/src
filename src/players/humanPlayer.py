@@ -9,5 +9,5 @@ class humanPlayer(abstractPlayer):
         # change between keyboard / controller
         self.inputSource = newInputSource
         
-    def listenForInput(self):
+    def run(self):
         pass # TODO listen to keyboard/controller

@@ -5,6 +5,7 @@ from players.networkPlayer import networkPlayer
 
 from characters.koishi import koishi
 from characters.miko import miko
+from characters.yukari import yukari
 
 import threading
 import time
@@ -17,10 +18,18 @@ class characterMenu(abstractMenu):
             self.__gameObj = gameObj
             
         def handler(self):
+            self.getOwner().getGameObj().getPlayers()[self.getOwner().currentSelector].setCharacter(self.character)
+            
+            if type(self.getGameObj().getPlayers()[1]) != networkPlayer:
+                if self.getOwner().currentSelector == 0:
+                    pass # put on left, set facing right
+                else:
+                    pass # put on right, set facing left
+            
             if self.getOwner().getCurSelector() == 0:
                 self.getOwner().changeSelector()
             else:
-                pass # both have selected
+                self.getOwner().getGameObj().setState(1)
             if self.getOwner().conn != None:
                 self.getOwner().conn.sendall("-{0}".format(self.getOwner().currentSelector).encode(encoding = "utf-8"))
             
@@ -31,7 +40,7 @@ class characterMenu(abstractMenu):
         self.currentSelector = 0
         # characters
         options = [characterMenu.characterOption(gameObj, self, char) for char in [
-                koishi, miko
+                koishi, miko, yukari
             ]
         ]
         self.selectors = [0,0]
@@ -54,12 +63,12 @@ class characterMenu(abstractMenu):
             if strRecv[:1] == "-":
                 choice = int(strRecv[1:])
                 condition = False
-                # TODO update opponent character with choice
+                self.getGameObj().getPlayers()[1].setCharacter(self.getOptions()[choice].character)
             else:
                 self.selectors[self.currentSelector] = int(strRecv)
             pass
         if self.firstSelector == 0:
-            pass # done
+            self.getGameObj().setState(1)
         else:
             # let local choose
             self.currentSelector = 1
@@ -82,3 +91,4 @@ class characterMenu(abstractMenu):
             (self.selectors[self.currentSelector] + increment) % len(self.getOptions())
         if type(self.getGameObj().getPlayers()[1]) == networkPlayer:
             self.conn.sendall("{0}".format(self.selectors[self.currentSelector]).encode(encoding = "utf-8"))
+        self.setPos(self.selectors[self.currentSelector])

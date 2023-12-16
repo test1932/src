@@ -14,14 +14,12 @@ class connectOption(abstractOption):
         sock = socket.socket(socket.AF_INET)
         sock.connect((ip, portNo))
         
-        self.__gameObj.setOpponent(networkPlayer(self.__gameObj,sock))
+        self.__gameObj.setOpponent(networkPlayer(self.__gameObj, sock, False))
         
         characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 1)
         
         self.__gameObj.setCurrentMenu(characterSelectionMenu)
         characterSelectionMenu.runSelection()
-        
-        # TODO change menu to character select, wait for opponent to select first
         
         #TODO
         # put game into waiting state
