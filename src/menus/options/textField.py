@@ -5,7 +5,6 @@ class textField(abstractOption):
         super().__init__(name, owner)
         self.__text = initText
         self.__pos = len(initText)
-        self.__owner = owner
         
     def deleteChar(self):
         if self.__pos == 0:
@@ -24,7 +23,7 @@ class textField(abstractOption):
         self.__pos -= 1 % (len(self.__text) + 1)
         
     def handler(self):
-        self.__owner.toggleFocus()
+        self.getOwner().toggleFocus()
         
     def getText(self):
         return self.__text

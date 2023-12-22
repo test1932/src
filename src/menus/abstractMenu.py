@@ -2,6 +2,7 @@ from typing import List
 from menus.options.abstractOption import abstractOption
 from menus.options.textField import textField
 import pygame
+from menus.options.keyBindingOption import keyBindingOption
 
 class abstractMenu:
     def __init__(self, name, previousMenu, bgPath, gameObj, options = []) -> None:
@@ -18,9 +19,6 @@ class abstractMenu:
         
     def getName(self):
         return self.__name
-    
-    def getOptions(self) -> List[abstractOption]:
-        return []
     
     def getFocus(self):
         return self.__focus
@@ -68,11 +66,13 @@ class abstractMenu:
         if type(self.__options[self.__pos]) == textField:
             self.__options[self.__pos].deleteChar()
             
-    def putKey(self, char):
+    def putKey(self, event):
         if not self.__focus:
             return
         if type(self.__options[self.__pos]) == textField:
-            self.__options[self.__pos].putChar(char)
+            self.__options[self.__pos].putChar(event.unicode)
+        elif type(self.__options[self.__pos]) == keyBindingOption:
+            self.__options[self.__pos].putChar(event.key)
             
     def getBackground(self):
         return self.background

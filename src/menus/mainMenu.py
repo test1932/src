@@ -3,6 +3,7 @@ from menus.abstractMenu import abstractMenu
 from menus.options.exitOption import exitOption
 from menus.options.networkOption import networkOption
 from menus.options.localOption import localOption
+from menus.options.settingsOption import settingsOption
 
 class mainMenu(abstractMenu):
     def __init__(self, gameObj) -> None:
@@ -11,6 +12,7 @@ class mainMenu(abstractMenu):
         options = [
                 localOption(self.getGameObj(), self),
                 networkOption(self.getGameObj(), self),
+                settingsOption(self.getGameObj(), self),
                 exitOption(self)
             ]
         self.setOptions(options)

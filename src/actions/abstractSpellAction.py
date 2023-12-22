@@ -1,11 +1,10 @@
 from threading import Lock, Thread
 import pygame
 
-class abstractSpellAction(Thread):
-    def __init__(self, imagePath) -> None:
+class abstractSpellAction(Thread):    
+    def __init__(self) -> None:
         self.__projectiles = []
         self.__projectileLock = Lock()
-        self.image = pygame.image.load(imagePath)
         
     def lockProjectiles(self):
         self.__projectileLock.acquire()
@@ -24,3 +23,14 @@ class abstractSpellAction(Thread):
     
     def remove(self, projectile):
         self.__projectiles.remove(projectile)
+        
+    def toString(self):
+        self.lockProjectiles()
+        output = []
+        for projectile in self.__projectiles:
+            x,y = projectile.getXPosition(), projectile.getYPosition()
+            frameNo = projectile.getFrameNo()
+            ID = type(projectile).ID
+            output.append(f'{ID},{frameNo},{x},{y}')
+        self.unlockProjectiles()
+        return ":".join(output)

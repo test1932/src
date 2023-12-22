@@ -12,17 +12,18 @@ class abstractPhysicalBody:
         return other.hitbox.colliderect(self.hitbox)
     
     def setXPosition(self, x):
-        xdiff = x - self.position[0]
-        self.hitbox.x += xdiff
+        self.hitbox.x += x - self.hitbox.x
         self.position = (x, self.position[1])
         
     def setYPosition(self, y):
-        ydiff = y - self.position[1]
-        self.hitbox.y += ydiff
+        self.hitbox.y += y - self.hitbox.y
         self.position = (self.position[0], y)
         
     def getPosition(self):
         return self.position
+    
+    def setPosition(self,p):
+        self.position = p
     
     def setXVelocity(self, x):
         self.velocity = (x, self.velocity[1])

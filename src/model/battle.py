@@ -21,14 +21,25 @@ class battle:
             self.lastUpdateTime = time.time()
             return
         self.timeIncrement = time.time() - self.lastUpdateTime
+        self.lastUpdateTime = time.time()
         
-        self.applyGravity()
         self.handlePlayerCollision()
         self.handleWallCollision()
         self.updatePlayerPositions()
         self.updateProjectilePositions()
         self.projectileCollision()
+        self.checkPlayerFlip()
+        self.applyGravity()
         self.checkForWinner()
+        
+    def checkPlayerFlip(self):
+        players = self.__gameObj.getPlayers()
+        if (players[0].getHitbox().x > players[1].getHitbox().x) !=\
+                players[0].isFacingLeft():
+            if not players[0].isCooldown():
+                self.__gameObj.getPlayers()[0].flipFacingDirection()
+            if not players[1].isCooldown():
+                self.__gameObj.getPlayers()[1].flipFacingDirection()
         
     def handleWallCollision(self):
         for player in self.__gameObj.getPlayers():
@@ -79,12 +90,12 @@ class battle:
             # if player is about to meet the middle
             if (player.getYPosition() < self.__gameObj.HEIGHT // 2 and player.getYPosition() + self.timeIncrement * \
                     (player.getYVelocity() + 0.3) >= self.__gameObj.HEIGHT // 2) or \
-                    (player.getYPosition() < self.__gameObj.HEIGHT // 2 and player.getYPosition() + \
-                    self.timeIncrement * (player.getYVelocity() + 0.3) >= self.__gameObj.HEIGHT // 2):
+                    (player.getYPosition() > self.__gameObj.HEIGHT // 2 and player.getYPosition() + \
+                    self.timeIncrement * (player.getYVelocity() - 0.3) <= self.__gameObj.HEIGHT // 2):
                 player.setYPosition(self.__gameObj.HEIGHT // 2)
                 player.setYVelocity(0)
                 continue
-            increment = 0.2
+            increment = player.getGravity()
             if player.getYPosition() > self.__gameObj.HEIGHT // 2:
                 increment = -increment
             player.setYVelocity(player.getYVelocity() + increment)
@@ -97,7 +108,7 @@ class battle:
     def handlePlayerCollision(self):
         players = self.__gameObj.getPlayers()
         if players[0].collides(players[1]):
-            dir = -1 if (players[1].getPosition()[0] - players[0].getPosition()[0]) > 0 else 1
+            dir = -5 if (players[1].getPosition()[0] - players[0].getPosition()[0]) > 0 else 5
             players[0].setXPosition(players[0].getXPosition() + dir)
             players[1].setXPosition(players[1].getXPosition() - dir)
     

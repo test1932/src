@@ -9,7 +9,7 @@ class localOption(abstractOption):
         self.__gameObj = gameObj
         
     def handler(self):
-        self.__gameObj.setOpponent(humanPlayer(self.__gameObj))
+        self.__gameObj.setHumanOpponent()
         characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 0)
         
         self.__gameObj.setCurrentMenu(characterSelectionMenu)
