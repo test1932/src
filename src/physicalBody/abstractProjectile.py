@@ -17,6 +17,9 @@ class abstractProjectile(abstractPhysicalBody):
     def effect(self):
         pass
     
+    def getOwner(self):
+        return self.__owner
+    
     def getFrameNo(self):
         return self.frameNo
     

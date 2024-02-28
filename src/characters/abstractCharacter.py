@@ -94,8 +94,10 @@ class abstractCharacter:
         DASH_BACK_START: DASH_BACK_END
     }
     
-    def __init__(self, imagePath, gameObj, gravityWeight) -> None:
+    def __init__(self, imagePath, gameObj, gravityWeight, baseX, baseY) -> None:
         self.name = ""
+        self.baseX = baseX
+        self.baseY = baseY
         self.__gameObj = gameObj
         self.spritesheet = pygame.image.load(imagePath).convert_alpha()
         self.frames = [] # list of lists of tuples (((x,y),(x,y)),yoff) 
@@ -107,7 +109,7 @@ class abstractCharacter:
         return self.gravityWeight
     
     def getGravity(self):
-        return self.gravityWeight // 20
+        return self.gravityWeight // 50
     
     def getName(self):
         return self.name
@@ -146,3 +148,49 @@ class abstractCharacter:
     
     def getYoffset(self):
         return self.currentYOffset
+    
+    # action stubs
+    def forwardMelee(self):
+        raise NotImplementedError("stub action")
+    
+    def backMelee(self):
+        raise NotImplementedError("stub action")
+    
+    def downMelee(self):
+        raise NotImplementedError("stub action")
+    
+    def upMelee(self):
+        raise NotImplementedError("stub action")
+    
+    def melee(self):
+        raise NotImplementedError("stub action")
+    
+    def forwardWeak(self):
+        raise NotImplementedError("stub action")
+    
+    def backWeak(self):
+        raise NotImplementedError("stub action")
+    
+    def downWeak(self):
+        raise NotImplementedError("stub action")
+    
+    def upWeak(self):
+        raise NotImplementedError("stub action")
+    
+    def weak(self):
+        raise NotImplementedError("stub action")
+    
+    def forwardStrong(self):
+        raise NotImplementedError("stub action")
+    
+    def backStrong(self):
+        raise NotImplementedError("stub action")
+    
+    def downStrong(self):
+        raise NotImplementedError("stub action")
+    
+    def upStrong(self):
+        raise NotImplementedError("stub action")
+    
+    def strong(self):
+        raise NotImplementedError("stub action")

@@ -1,6 +1,7 @@
 from threading import Lock
 from physicalBody.abstractPhysicalBody import abstractPhysicalBody
 from characters.abstractCharacter import abstractCharacter
+from actions.abstractSpellAction import abstractSpellAction
 
 class abstractPlayer(abstractPhysicalBody):
     LEFT_DIR = 0
@@ -8,6 +9,7 @@ class abstractPlayer(abstractPhysicalBody):
     
     MAX_HEALTH = 1000
     MAX_MANA = 1000
+    MAX_SWAP_VAL = 1000
     
     RIGHT = 0
     LEFT = 1
@@ -17,6 +19,9 @@ class abstractPlayer(abstractPhysicalBody):
     MELEE = 5
     WEAK = 6
     STRONG = 7
+    
+    FORWARD = 8
+    BACK = 9
     
     actionNames = [
         "Right",
@@ -40,6 +45,7 @@ class abstractPlayer(abstractPhysicalBody):
         
         self.health = 1000
         self.mana = 1000
+        self.swapVal = 1000
         self.dashing = False
         self.effects = []
         self.cooldownTime = 0
@@ -52,11 +58,57 @@ class abstractPlayer(abstractPhysicalBody):
         
         self.__gameObj = gameObj
         self.__spellcardLock = Lock()
+        self.__effectsLock = Lock()
 
         self.playerSpells = []
+        self.actionMapping = None
+        
+    def lockEffects(self):
+        self.__effectsLock.acquire()
+        
+    def unlockEffects(self):
+        self.__effectsLock.release()
+        
+    def addEffect(self, newEffect):
+        self.lockEffects()
+        self.effects.append(newEffect)
+        self.unlockEffects()
+        
+    def decrementEffects(self, timeDec):
+        self.lockEffects()
+        self.effects = list(map(lambda x: x.decrementTime(timeDec), self.effects))
+        i = 0
+        while i < len(self.effects):
+            if self.effects[i].getRemainingTime() < 0:
+                self.effects[i].removeEffect()
+                del self.effects[i]
+            else:
+                i += 1
+        self.unlockEffects()
         
     def isCooldown(self):
         return self.cooldownTime > 0
+    
+    def isDashing(self):
+        return self.dashing
+    
+    def flipDash(self):
+        if self.dashing:
+            self.dashing = False
+            # TODO set animation frame to dashing end
+        else:
+            self.dashing = True
+            # TODO set animation frame to dashing start
+    
+    def addSpellaction(self, spellaction):
+        self.lockSpellCards()
+        self.playerSpells.append(spellaction)
+        self.unlockSpellCards()
+        
+    def removeSpellaction(self, spellaction):
+        self.lockSpellCards()
+        self.playerSpells.remove(spellaction)
+        self.unlockSpellCards()
     
     def holdKey(self, key):
         if not key in self.heldKeys:
@@ -111,13 +163,77 @@ class abstractPlayer(abstractPhysicalBody):
             flip = self.facingDirection == abstractPlayer.LEFT_DIR)
         return image
         
+    def getOpponent(self):
+        return self.__gameObj.otherPlayer(self)
     
     def getHealth(self):
         return self.health
     
+    def getMana(self):
+        return self.mana
+    
+    def getSwap(self):
+        return self.swapVal
+    
+    def incrementHealth(self, val):
+        assert val >= 0
+        self.health = min(abstractPlayer.MAX_HEALTH, self.health + val)
+        
+    def decrementHealth(self, val):
+        assert val >= 0
+        self.health = max(0, self.health - val)
+        
+    def setHealth(self, val):
+        assert val >= 0
+        self.health = val
+        
+    def setMana(self, val):
+        assert val >= 0
+        self.mana = val
+        
+    def setSwapVal(self, val):
+        assert val >= 0
+        self.swapVal = val
+        
+    def incrementMana(self, val):
+        assert val >= 0
+        self.mana = min(abstractPlayer.MAX_MANA, self.mana + val)
+        
+    def decrementMana(self, val):
+        assert val >= 0
+        self.mana = max(0, self.mana - val)
+        
+    def incrementSwapVal(self, val):
+        assert val >= 0
+        self.swapVal = min(abstractPlayer.MAX_SWAP_VAL, self.swapVal + val)
+        
+    def decrementSwapVal(self, val):
+        assert val >= 0
+        self.swapVal = max(0, self.swapVal - val)
+    
     def setCharacter(self, character, i):
         self.character = character(self.__gameObj)
         self.characterIndex = i
+        
+        self.actionMapping = {
+            str([abstractPlayer.FORWARD,abstractPlayer.MELEE]):self.character.forwardMelee,
+            str([abstractPlayer.BACK,abstractPlayer.MELEE]):self.character.backMelee,
+            str([abstractPlayer.DOWN,abstractPlayer.MELEE]):self.character.downMelee,
+            str([abstractPlayer.UP,abstractPlayer.MELEE]):self.character.upMelee,
+            str([abstractPlayer.MELEE]):self.character.melee,
+            
+            str([abstractPlayer.FORWARD,abstractPlayer.WEAK]):self.character.forwardWeak,
+            str([abstractPlayer.BACK,abstractPlayer.WEAK]):self.character.backWeak,
+            str([abstractPlayer.DOWN,abstractPlayer.WEAK]):self.character.downWeak,
+            str([abstractPlayer.UP,abstractPlayer.WEAK]):self.character.upWeak,
+            str([abstractPlayer.WEAK]):self.character.weak,
+            
+            str([abstractPlayer.FORWARD,abstractPlayer.STRONG]):self.character.forwardStrong,
+            str([abstractPlayer.BACK,abstractPlayer.STRONG]):self.character.backStrong,
+            str([abstractPlayer.DOWN,abstractPlayer.STRONG]):self.character.downStrong,
+            str([abstractPlayer.UP,abstractPlayer.STRONG]):self.character.upStrong,
+            str([abstractPlayer.STRONG]):self.character.strong
+        }
         
     def getCharacter(self):
         return self.character
@@ -150,6 +266,19 @@ class abstractPlayer(abstractPhysicalBody):
     def getGravity(self):
         return self.character.getGravity()
     
+    def handleActions(self):
+        recent = list(filter(lambda x: x not in self.ignoreKeys, self.heldKeys))[-2:]
+        if str(recent) not in self.actionMapping:
+            return
+        self.ignoreKeys.add(recent[-1])
+        # TODO handle animation
+        try:
+            action = self.actionMapping[str(recent)]
+            actionThread = abstractSpellAction(self, self.__gameObj, action)
+            actionThread.start()
+        except NotImplementedError:
+            print("action not implemented")
+    
     def handleHeldKeys(self):
         if self.isCooldown():
             return
@@ -163,6 +292,7 @@ class abstractPlayer(abstractPhysicalBody):
             self.setAnimation(abstractCharacter.DOWN_START_INIT)
         
         self.handleHorizontalMovement()
+        self.handleActions()
 
     def handleHorizontalMovement(self):
         if abstractPlayer.RIGHT in self.heldKeys:
@@ -181,5 +311,6 @@ class abstractPlayer(abstractPhysicalBody):
             if self.animationNumber in abstractCharacter.idleTransitions:
                 self.setAnimation(abstractCharacter.idleTransitions[self.animationNumber])
                 # print(f"animation is now {self.animationNumber}")
-                
             self.setXVelocity(0)
+            
+    # actions

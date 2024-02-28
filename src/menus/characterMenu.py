@@ -39,13 +39,13 @@ class characterMenu(abstractMenu):
                 self.getOwner().getGameObj().getPlayers()[0].setCharacter(self.character, self.getOwner().selectors[selector])
             
             if self.getOwner().conn != None:
-                print(f"about to send {'-{0}'.format(self.getOwner().selectors[selector])}")
+                # print(f"about to send {'-{0}'.format(self.getOwner().selectors[selector])}")
                 self.getOwner().conn.sendall("-{0}".format(self.getOwner().selectors[selector]).encode(encoding = "utf-8"))
             if self.getOwner().getCurSelector() == 0:
                 self.getOwner().changeSelector()
             else:
                 self.getOwner().getGameObj().setupPlayers()
-                print("switching to game, I am client")
+                # print("switching to game, I am client")
                 self.getOwner().getGameObj().setState(1)
             
     def __init__(self, previousMenu, gameObj, firstPickIndex) -> None:
@@ -73,7 +73,7 @@ class characterMenu(abstractMenu):
         condition = True
         while condition:
             strRecv = self.conn.recv(1024).decode("utf-8")
-            print(f"recv {strRecv}")
+            # print(f"recv {strRecv}")
             if strRecv[:1] == "-":
                 choice = int(strRecv[1:])
                 condition = False
@@ -86,7 +86,7 @@ class characterMenu(abstractMenu):
             pass
         if self.firstSelector == 0:
             self.getGameObj().setupPlayers()
-            print("switching to game, I am server")
+            # print("switching to game, I am server")
             self.getGameObj().setState(1)
         else:
             # let local choose

@@ -2,13 +2,21 @@ import time
 import pygame
 
 class battle:
-    def __init__(self, gameObj, backgroundPath, nextBattle) -> None:
+    def __init__(self, gameObj, backgroundPath, nextBattle, maxLength = 180) -> None:
         self.__gameObj = gameObj
         self.lastUpdateTime = None # time of last frame
         self.timeIncrement = None # time since last frame
         self.background = pygame.transform.scale(pygame.image.load(backgroundPath), (gameObj.WIDTH, gameObj.HEIGHT))
         self.nextBattle = nextBattle
+        
+        self.timeRemaining = maxLength
         self.winner = None
+        
+    def getRemainingTime(self):
+        return self.timeRemaining
+        
+    def setLastUpdateTime(self):
+        self.lastUpdateTime = time.time()
         
     def getBackground(self):
         return self.background
@@ -23,6 +31,15 @@ class battle:
         self.timeIncrement = time.time() - self.lastUpdateTime
         self.lastUpdateTime = time.time()
         
+        self.timeRemaining -= self.timeIncrement
+        
+        for player in self.__gameObj.getPlayers():
+            player.decrementEffects(self.timeIncrement)
+            if not player.isDashing():
+                player.incrementMana(0.001 * self.timeIncrement)
+            else:
+                player.decrementMana(0.001 * self.timeIncrement)
+        
         self.handlePlayerCollision()
         self.handleWallCollision()
         self.updatePlayerPositions()
@@ -30,7 +47,8 @@ class battle:
         self.projectileCollision()
         self.checkPlayerFlip()
         self.applyGravity()
-        self.checkForWinner()
+        if self.checkForWinner():
+            pass # do winner behaviour
         
     def checkPlayerFlip(self):
         players = self.__gameObj.getPlayers()
@@ -43,15 +61,22 @@ class battle:
         
     def handleWallCollision(self):
         for player in self.__gameObj.getPlayers():
-            if player.getHitbox().x <= 0:
+            if player.getHitbox().x <= 50:
                 player.setXVelocity(max(player.getXVelocity(), 0))
-            elif player.getHitbox().x + player.getHitbox().width >= self.__gameObj.WIDTH:
+            elif player.getHitbox().x + player.getHitbox().width >= self.__gameObj.WIDTH - 50:
                 player.setXVelocity(min(player.getXVelocity(), 0))
         
     def checkForWinner(self):
-        for player in self.__gameObj.getPlayers():
+        players = self.__gameObj.getPlayers()
+        if self.timeRemaining <= 0:
+            self.winner = max(players, key = lambda x: x.health)
+            return True
+        for player in players:
             if player.getHealth() <= 0:
-                self.winner = player
+                self.winner = self.__gameObj.otherPlayer(player)
+                return True
+        return False
+                
         
     def projectileCollision(self):
         for player in self.__gameObj.getPlayers():
@@ -117,7 +142,7 @@ class battle:
             player.lockSpellCards()
             for spellAction in player.getSpellCards():
                 spellAction.lockProjectiles()
-                self.updateProjectilesOfSpellcard(spellAction)
+                self.updateProjectilePositionsOfSpellcard(spellAction)
                 spellAction.unlockProjectiles()
             player.unlockSpellCards()
         
@@ -125,3 +150,6 @@ class battle:
         for projectile in spellAction.getProjectiles():
             projectile.setXPosition(self.getXPosition() + self.timeIncrement * self.getXVelocity())
             projectile.setYPosition(self.getYPosition() + self.timeIncrement * self.getYVelocity())
+            
+    def setTime(self, time):
+        self.timeRemaining = time

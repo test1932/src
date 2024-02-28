@@ -13,5 +13,5 @@ class localOption(abstractOption):
         characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 0)
         
         self.__gameObj.setCurrentMenu(characterSelectionMenu)
-        self.__gameObj.setBattle(battle(self.__gameObj, "assets/images/backgrounds/backbackground.jpg",None))
+        self.__gameObj.setBattle(battle(self.__gameObj, "assets/images/backgrounds/Simple Backgrounds/Bamboo Forest of the Lost.png",None))
         characterSelectionMenu.runSelection()

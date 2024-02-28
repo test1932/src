@@ -1,13 +1,17 @@
+import threading
 import pygame
+
 from menus.mainMenu import mainMenu
 from menus.options.textField import textField
 from menus.characterMenu import characterMenu
+from menus.options.keyBindingOption import keyBindingOption
+from menus.pauseMenu import pauseMenu
+
 from players.humanPlayer import humanPlayer
 from players.networkPlayer import networkPlayer
 from players.abstractPlayer import abstractPlayer
-from menus.options.keyBindingOption import keyBindingOption
 
-import threading
+from graphics.progressBar import progressBar
 
 class game:
     MENU = 0
@@ -28,7 +32,9 @@ class game:
         self.players = [humanPlayer(self, 0), None]
         self.opponentHuman = humanPlayer(self, 1)
         
-        self.currentMenu = mainMenu(self)
+        self.mainMenu = mainMenu(self)
+        self.pauseMenu = pauseMenu(None, self)
+        self.currentMenu = self.mainMenu
         self.currentBattle = None
         
         self.multicastString = None
@@ -40,6 +46,23 @@ class game:
         self.bgRect = pygame.Surface((700,500))
         self.bgRect.set_alpha(128)
         self.bgRect.fill((255,255,255))
+        
+        imagePathMana = "assets/images/other/mana.png"
+        maxMana = abstractPlayer.MAX_MANA
+        maxhealth = abstractPlayer.MAX_HEALTH
+        maxSwap = abstractPlayer.MAX_SWAP_VAL
+        self.manabars = [
+            progressBar(maxMana, maxMana, 50, 530, 300, 60, imagePathMana, True, 5), 
+            progressBar(maxMana, maxMana, 650, 530, 300, 60, imagePathMana, True, 5)
+            ]
+        self.healthbars = [
+            progressBar(maxhealth, maxhealth, 50, 30, 350, 25, None),
+            progressBar(maxhealth, maxhealth, 600, 30, 350, 25, None)
+        ]
+        self.swapbars = [
+            progressBar(maxSwap, maxSwap, 50, 60, 100, 10, None),
+            progressBar(maxSwap, maxSwap, 850, 60, 100, 10, None)
+        ]
         
     def setupPlayers(self):
         for player in self.players:
@@ -84,6 +107,8 @@ class game:
         
     def setState(self, newState):
         assert newState in [game.GAME, game.MENU]
+        if newState == game.GAME:
+            self.currentBattle.setLastUpdateTime()
         self.state = newState
         
     def startGameDisplay(self):
@@ -196,7 +221,22 @@ class game:
         self.displayProjectiles()
         for player in self.players:
             pygame.draw.rect(self.screen, (255,255,255), player.getHitbox())
-        #display health bars and stuff
+        self.displayBattleOverlay()
+
+    def displayBattleOverlay(self):
+        self.displayTimeRemaining()
+        for i in range(2):
+            self.healthbars[i].getImage(self.screen)
+            self.manabars[i].getImage(self.screen)
+            self.swapbars[i].getImage(self.screen)
+    
+    def displayTimeRemaining(self):
+        x = (self.WIDTH // 2) - 15
+        y = self.HEIGHT // 10 - 10
+        text = str(int(round(self.currentBattle.getRemainingTime(), 0)))
+        # replace with animation
+        pygame.draw.circle(self.screen, (255,255,255), (self.WIDTH // 2, self.HEIGHT // 10), self.WIDTH // 30)
+        self.screen.blit(self.baseFont.render(text, False, (0,0,0)), (x,y))
         
     def displayProjectiles(self):
         for player in self.players:
@@ -215,15 +255,23 @@ class game:
     def displayPlayers(self):
         for player in self.players:
             pos = player.getPosition()
+            baseX = player.getCharacter().baseX
+            baseY = player.getCharacter().baseY
+            
+            image =player.getImage()
+            
+            xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else -player.getCharacter().getXoffset()
+            yOff = player.getCharacter().getYoffset()
                 
-            self.displayImage(player.getImage(),(pos[0] - player.getCharacter().getXoffset(), \
-                pos[1] - player.getCharacter().getYoffset()))
+            self.displayImage(image,(pos[0] - baseX - xOff, pos[1] - baseY - yOff))
             
     def sendNetworkDisplay(self):
-        displayRangeStr = f'{self.displayRange[0][0]},{self.displayRange[0][1]},{self.displayRange[1][0]},{self.displayRange[1][1]}/'
+        displayRangeStr = f'{self.displayRange[0][0]},{self.displayRange[0][1]},{self.displayRange[1][0]},{self.displayRange[1][1]},'
+        displayRangeStr = displayRangeStr + f'{self.currentBattle.getRemainingTime()}/'
         toSend = []
         for p in self.players:
-            character = f'{p.getCharacterIndex()},{p.getAnimationNo()},{p.getFrameNo()},{p.getXPosition()},{p.getYPosition()},{p.getFacingDirection()};'
+            character = f'{p.getCharacterIndex()},{p.getAnimationNo()},{p.getFrameNo()},{p.getXPosition()},{p.getYPosition()},{p.getFacingDirection()},'
+            character = character + f'{p.getHealth()},{p.getMana()},{p.getSwap()};'
             p.lockSpellCards()
             spellcards = ",".join([spellcards.append(spellcard.toString()) for spellcard in p.getSpellCards()])
             p.unlockSpellCards()
@@ -239,9 +287,11 @@ class game:
             self.startGameDisplay()
         if self.multicastString == None:
             return
+        
         data = self.multicastString
         [meta, playersStr] = data.split('/')
-        [x1, y1, x2, y2] = meta.split(',')
+        [x1, y1, x2, y2, time] = meta.split(',')
+        self.currentBattle.setTime(float(time))
         self.displayRange = ((float(x1),float(y1)),(float(x2),float(y2)))
         self.displayBackground(self.currentBattle.getBackground())
         
@@ -249,8 +299,21 @@ class game:
         for i,player in enumerate(players):
             projectileSplit = player.split(';')
             fields = projectileSplit[0].split(',')
-            characterIndex, animationNo, frameNo, x, y, facingLeft = \
-                int(fields[0]), int(fields[1]), int(fields[2]), float(fields[3]), float(fields[4]), int(fields[5]) == abstractPlayer.LEFT
+            characterIndex, animationNo, frameNo, x, y, facingLeft, health, mana, swap = \
+                int(fields[0]), \
+                int(fields[1]), \
+                int(fields[2]), \
+                float(fields[3]), \
+                float(fields[4]), \
+                int(fields[5]) == abstractPlayer.LEFT,\
+                float(fields[6]),\
+                float(fields[7]),\
+                float(fields[8])
+                
+            self.players[i].setHealth(health)
+            self.players[i].setMana(mana)
+            self.players[i].setSwapVal(swap)
+            
             projectiles = projectileSplit[1].split(':')
             if self.players[i].getCharacterIndex() == None:
                 self.players[i].setCharacter(characterMenu.characters[characterIndex], characterIndex)
@@ -260,6 +323,7 @@ class game:
             self.players[i].setFacingDirection(abstractPlayer.LEFT if facingLeft else abstractPlayer.RIGHT)
             self.displayCharacter(self.players[i], animationNo, frameNo)
             self.displayNetworkProjectiles(projectiles, self.players[i])
+        self.displayBattleOverlay()
             
     def displayNetworkProjectiles(self, projectiles, player):
         for projectile in projectiles:
@@ -272,10 +336,17 @@ class game:
             
     def displayCharacter(self, player, animationNo, frameNo):
         pos = player.getPosition()
+        baseX = player.getCharacter().baseX
+        baseY = player.getCharacter().baseY
+        
         player.setAnimationFrame(animationNo, frameNo)
-        # print(player.animationNumber)
-        self.displayImage(player.getImage(isNetwork = True),(pos[0] - player.getCharacter().getXoffset(), \
-                pos[1] - player.getCharacter().getYoffset()))
+        image = player.getImage(isNetwork = True)
+        
+        xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else -player.getCharacter().getXoffset()
+        yOff = player.getCharacter().getYoffset()
+
+        self.displayImage(image,(pos[0] - baseX - xOff, pos[1] - baseY - yOff))
+        
         
     def handleMenuInput(self,event):
         if event.type == pygame.KEYUP:
@@ -295,10 +366,15 @@ class game:
                 self.currentMenu.putKey(event)
 
     def sendKeyPress(self, key, isUp):
-        if type(self.players[1]) == networkPlayer and not self.players[1].isServer():
+        if type(self.players[1]) == networkPlayer and not self.players[1].isServer() and \
+                self.players[1].getConn() != None:
             self.players[1].getConn().sendall("{0}{1}".format(isUp,key).encode(encoding = "utf-8"))
 
     def handleGameInput(self,event):
+        if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
+            self.setState(game.MENU)
+            self.setCurrentMenu(self.pauseMenu)
+            return
         for player in self.players:
             if not type(player) == humanPlayer:
                 continue
@@ -307,6 +383,8 @@ class game:
                 self.sendKeyPress(player.mapping[event.key], 0)
             if event.type == pygame.KEYUP and event.key in player.mapping:
                 player.heldKeys.remove(player.mapping[event.key])
+                if player.mapping[event.key] in player.ignoreKeys:
+                    player.ignoreKeys.remove(player.mapping[event.key])
                 self.sendKeyPress(player.mapping[event.key], 1)
     
     def otherPlayer(self, player):
@@ -332,8 +410,11 @@ class game:
                 self.displayMenu()
             elif self.state == game.GAME:
                 if type(self.players[1]) != networkPlayer or self.players[1].isServer():
-                    for player in self.players:
+                    for i,player in enumerate(self.players):
                         player.handleHeldKeys()
+                        self.manabars[i].setValue(self.players[i].getMana())
+                        self.healthbars[i].setValue(self.players[i].getHealth())
+                        self.swapbars[i].setValue(self.players[i].getSwap())
                     self.currentBattle.updatebattle()
                 self.displayGame()
             
