@@ -1,5 +1,6 @@
 import time
 import pygame
+from physicalBody.attackProjectile import meleeProjectile
 
 class battle:
     def __init__(self, gameObj, backgroundPath, nextBattle, maxLength = 180) -> None:
@@ -90,8 +91,8 @@ class battle:
     def collideProjectilesOfSpellcard(self, spellaction, player):
         for projectile in spellaction.getProjectiles():
             if projectile.collides(player):
-                projectile.effect()
-            self.collideWithOtherProjectiles(projectile, self.__gameObj.otherPlayer(player))
+                projectile.applyEffect()
+            self.collideWithOtherProjectiles(projectile, player)
             
     def collideWithOtherProjectiles(self, projectile, otherPlayer):
         otherPlayer.lockSpellCards()
@@ -103,7 +104,8 @@ class battle:
         
     def projectileCollisionWithSpellcard(self, spellcard, projectile):
         for secondProjectile in spellcard.getProjectiles():
-            if not secondProjectile.collides(projectile):
+            if not secondProjectile.collides(projectile) \
+                    or type(projectile) == meleeProjectile or type(secondProjectile) == meleeProjectile:
                 continue
             secondProjectile.collideProjectile(projectile)
             projectile.collideProjectile(secondProjectile)
@@ -148,8 +150,8 @@ class battle:
         
     def updateProjectilePositionsOfSpellcard(self, spellAction):
         for projectile in spellAction.getProjectiles():
-            projectile.setXPosition(self.getXPosition() + self.timeIncrement * self.getXVelocity())
-            projectile.setYPosition(self.getYPosition() + self.timeIncrement * self.getYVelocity())
+            projectile.setXPosition(projectile.getXPosition() + self.timeIncrement * projectile.getXVelocity())
+            projectile.setYPosition(projectile.getYPosition() + self.timeIncrement * projectile.getYVelocity())
             
     def setTime(self, time):
         self.timeRemaining = time

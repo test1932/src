@@ -13,6 +13,8 @@ from players.abstractPlayer import abstractPlayer
 
 from graphics.progressBar import progressBar
 
+DEBUG = True
+
 class game:
     MENU = 0
     GAME = 1
@@ -72,14 +74,21 @@ class game:
                 thread.start()
                 
     def displayImage(self, image, coords):
-        factor = self.WIDTH / (self.displayRange[1][0] - self.displayRange[0][0])
-        (x,y) = coords
-        width = factor * image.get_width()
-        height = factor * image.get_height()
-        newX = (x - self.displayRange[0][0]) * factor
-        newY = (y - self.displayRange[0][1]) * factor
-        newImage = pygame.transform.scale(image, (width, height))
-        self.screen.blit(newImage, (newX, newY))
+        if image == None:
+            if DEBUG:
+                print("None image")
+        elif isinstance(image, pygame.Rect):
+            # debugging images
+            pygame.draw.rect(self.screen, (255,0,0), (*coords, image[2], image[3]), 2)
+        else:
+            factor = self.WIDTH / (self.displayRange[1][0] - self.displayRange[0][0])
+            (x,y) = coords
+            width = factor * image.get_width()
+            height = factor * image.get_height()
+            newX = (x - self.displayRange[0][0]) * factor
+            newY = (y - self.displayRange[0][1]) * factor
+            newImage = pygame.transform.scale(image, (width, height))
+            self.screen.blit(newImage, (newX, newY))
         
     def displayBackground(self, image):
         x1 = self.displayRange[0][0]
@@ -248,7 +257,7 @@ class game:
             player.unlockSpellCards()
             
     def displaySpellCard(self, spellCard):
-        for projectile in spellCard.getProjectiles:
+        for projectile in spellCard.getProjectiles():
             pos = projectile.getPosition()
             self.displayImage(projectile.getImage(), pos)
         
@@ -258,11 +267,12 @@ class game:
             baseX = player.getCharacter().baseX
             baseY = player.getCharacter().baseY
             
-            image =player.getImage()
+            image, baseWidth, width = player.getImage()
             
-            xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else -player.getCharacter().getXoffset()
+            xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else\
+                -player.getCharacter().getXoffset() + (width - baseWidth)
             yOff = player.getCharacter().getYoffset()
-                
+            
             self.displayImage(image,(pos[0] - baseX - xOff, pos[1] - baseY - yOff))
             
     def sendNetworkDisplay(self):
@@ -409,6 +419,7 @@ class game:
             if self.state == game.MENU:
                 self.displayMenu()
             elif self.state == game.GAME:
+                # print(self.players[0].getHealth(), self.players[1].getHealth())
                 if type(self.players[1]) != networkPlayer or self.players[1].isServer():
                     for i,player in enumerate(self.players):
                         player.handleHeldKeys()

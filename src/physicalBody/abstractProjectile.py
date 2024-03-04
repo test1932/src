@@ -1,11 +1,11 @@
-from src.physicalBody.abstractPhysicalBody import abstractPhysicalBody
+from physicalBody.abstractPhysicalBody import abstractPhysicalBody
 
 class abstractProjectile(abstractPhysicalBody):
     #will have static list of frames per projectile type
     #will have static ID per projectile type
     
-    def __init__(self, p, v, spellCard, owner) -> None:
-        super().__init__(p, v)
+    def __init__(self, p, v, spellCard, owner, hitbox, image) -> None:
+        super().__init__(p, v, hitbox, image)
         self.effect = None
         self.damage = 0
         self.priority = 0 # 'weight' of projectile
@@ -13,8 +13,9 @@ class abstractProjectile(abstractPhysicalBody):
         self.__owner = owner
         self.frames = []
         self.frameNo = 0
+        self.__spellcard.add(self)
         
-    def effect(self):
+    def applyEffect(self):
         pass
     
     def getOwner(self):
@@ -28,6 +29,9 @@ class abstractProjectile(abstractPhysicalBody):
     
     def destroy(self):
         self.__spellcard.remove(self)
+        
+    def getSpellCard(self):
+        return self.__spellcard
     
     def collideProjectile(self, otherProjectile):
         self.priority -= otherProjectile.priority

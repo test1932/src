@@ -31,35 +31,33 @@ class abstractCharacter:
     UP_END_INIT = 22
     UP_END_POST = 23
     
-    #TODO fix this
+    # MELEE_BACK = 24
+    # MELEE_CLOSE = 25
+    # MELEE_FAR = 26
+    # MELEE_THIRD = 27
+    # MELEE_AIR = 28
+    # MELEE_UP = 29
+    # MELEE_FORWARD = 30
+    # MELEE_FOURTH = 31
+    # MELEE_DOWN = 32
+    # MELEE_DASH = 33
     
-    MELEE_BACK = 20
-    MELEE_CLOSE = 21
-    MELEE_FAR = 22
-    MELEE_THIRD = 23
-    MELEE_AIR = 24
-    MELEE_UP = 25
-    MELEE_FORWARD = 26
-    MELEE_FOURTH = 27
-    MELEE_DOWN = 28
-    MELEE_DASH = 29
+    # GRAB = 30
+    # GRAB_MISS = 31
+    # GRAB_HIT = 32
     
-    GRAB = 30
-    GRAB_MISS = 31
-    GRAB_HIT = 32
+    # WEAK = 33
+    # WEAK_UP = 34
+    # WEAK_DOWN = 35
+    # WEAK_FORWARD = 36
+    # WEAK_CHARGED = 37
+    # WEAK_DASH = 38
     
-    WEAK = 33
-    WEAK_UP = 34
-    WEAK_DOWN = 35
-    WEAK_FORWARD = 36
-    WEAK_CHARGED = 37
-    WEAK_DASH = 38
-    
-    STRONG = 39
-    STRONG_UP = 40
-    STRONG_FORWARD = 41
-    STRONG_DOWN = 42
-    STRONG_BACK = 43
+    # STRONG = 39
+    # STRONG_UP = 40
+    # STRONG_FORWARD = 41
+    # STRONG_DOWN = 42
+    # STRONG_BACK = 43
     
     autoTransitions = {
         FORWARD_START: FORWARD_LOOP,
@@ -104,6 +102,9 @@ class abstractCharacter:
         self.currentXOffset = None
         self.currentYOffset = None
         self.gravityWeight = gravityWeight # eg 300
+        self.imagePath = imagePath
+        self.characterTransitions = None
+        self.baseWidth = 0
         
     def getJump(self):
         return self.gravityWeight
@@ -134,14 +135,20 @@ class abstractCharacter:
                 frameIndex == (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown) - 1:
             animationIndex = abstractCharacter.autoTransitions[animationIndex]
             frameIndex = 0
-            # print(f"animation is (auto) now {animationIndex}")
+            
+        elif animationIndex in self.characterTransitions and \
+                frameIndex == (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown) - 1:
+            animationIndex = self.characterTransitions[animationIndex]
+            frameIndex = 0
+            
         else:
             frameIndex = (frameIndex + 1) % (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown)
         
-        return (frame, animationIndex, frameIndex)
+        return (frame, animationIndex, frameIndex, x2 - x1)
     
-    def setFrames(self, animations):
+    def setFrames(self, animations, baseWidth):
         self.frames = animations
+        self.baseWidth = baseWidth
         
     def getXoffset(self):
         return self.currentXOffset
@@ -150,47 +157,47 @@ class abstractCharacter:
         return self.currentYOffset
     
     # action stubs
-    def forwardMelee(self):
+    def forwardMelee(self, player):
         raise NotImplementedError("stub action")
     
-    def backMelee(self):
+    def backMelee(self, player):
         raise NotImplementedError("stub action")
     
-    def downMelee(self):
+    def downMelee(self, player):
         raise NotImplementedError("stub action")
     
-    def upMelee(self):
+    def upMelee(self, player):
         raise NotImplementedError("stub action")
     
-    def melee(self):
+    def melee(self, player):
         raise NotImplementedError("stub action")
     
-    def forwardWeak(self):
+    def forwardWeak(self, player):
         raise NotImplementedError("stub action")
     
-    def backWeak(self):
+    def backWeak(self, player):
         raise NotImplementedError("stub action")
     
-    def downWeak(self):
+    def downWeak(self, player):
         raise NotImplementedError("stub action")
     
-    def upWeak(self):
+    def upWeak(self, player):
         raise NotImplementedError("stub action")
     
-    def weak(self):
+    def weak(self, player):
         raise NotImplementedError("stub action")
     
-    def forwardStrong(self):
+    def forwardStrong(self, player):
         raise NotImplementedError("stub action")
     
-    def backStrong(self):
+    def backStrong(self, player):
         raise NotImplementedError("stub action")
     
-    def downStrong(self):
+    def downStrong(self, player):
         raise NotImplementedError("stub action")
     
-    def upStrong(self):
+    def upStrong(self, player):
         raise NotImplementedError("stub action")
     
-    def strong(self):
+    def strong(self, player):
         raise NotImplementedError("stub action")
