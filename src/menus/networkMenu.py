@@ -29,7 +29,7 @@ class networkMenu(abstractMenu):
             sockGrp.bind(('',multicastPortNo))
             mreq = struct.pack("=4sl", socket.inet_aton(multicastIP), socket.INADDR_ANY)
             sockGrp.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-            self.__gameObj.setMulticastConnListen(sockGrp)
+            self.__gameObj.setMulticastConnListen(sockGrp, multicastIP, multicastPortNo)
             
             self.__gameObj.setOpponent(networkPlayer(self.__gameObj, None, False))
             
@@ -55,7 +55,7 @@ class networkMenu(abstractMenu):
             sockGrp.bind(('',multicastPortNo))
             mreq = struct.pack("=4sl", socket.inet_aton(ipGroup), socket.INADDR_ANY)
             sockGrp.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-            self.__gameObj.setMulticastConnListen(sockGrp)
+            self.__gameObj.setMulticastConnListen(sockGrp, ipGroup, multicastPortNo)
             
             self.__gameObj.setBattle(battle(self.__gameObj, "assets/images/backgrounds/backbackground.jpg",None))
             characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 1)
@@ -81,11 +81,13 @@ class networkMenu(abstractMenu):
             conn, addr = sock.accept()
             self.__gameObj.setOpponent(networkPlayer(self.__gameObj, conn, True))
             
-            ipGroup = self.getOwner().getOptions()[networkMenu.MULTICAST_IS_AT].getText()
+            multicastIP = self.getOwner().getOptions()[networkMenu.MULTICAST_IS_AT].getText()
+            multicastPortNo = int(self.getOwner().getOptions()[networkMenu.MULTICAST_PORT_IS_AT].getText())
+            
             sockGrp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             sockGrp.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 5)
-            self.__gameObj.setMulticastConnHost(sockGrp)
-            conn.sendall(ipGroup.encode(encoding = "utf-8"))
+            self.__gameObj.setMulticastConnHost(sockGrp, multicastIP, multicastPortNo)
+            conn.sendall(multicastIP.encode(encoding = "utf-8"))
             
             characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 0)
             self.__gameObj.setBattle(battle(self.__gameObj, "assets/images/backgrounds/backbackground.jpg",None))

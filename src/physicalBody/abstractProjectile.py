@@ -3,15 +3,15 @@ from physicalBody.abstractPhysicalBody import abstractPhysicalBody
 class abstractProjectile(abstractPhysicalBody):
     #will have static list of frames per projectile type
     #will have static ID per projectile type
+    frames = [] # loaded in with setFrames()
     
-    def __init__(self, p, v, spellCard, owner, hitbox, image) -> None:
-        super().__init__(p, v, hitbox, image)
+    def __init__(self, p, v, spellCard, owner, hitbox, image, direction) -> None:
+        super().__init__(p, v, hitbox, image, direction)
         self.effect = None
         self.damage = 0
         self.priority = 0 # 'weight' of projectile
         self.__spellcard = spellCard
         self.__owner = owner
-        self.frames = []
         self.frameNo = 0
         self.__spellcard.add(self)
         
@@ -37,3 +37,6 @@ class abstractProjectile(abstractPhysicalBody):
         self.priority -= otherProjectile.priority
         if self.priority <= 0:
             self.destroy()
+            
+    def getFrameNo(self):
+        return self.frameNo

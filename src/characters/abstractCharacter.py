@@ -31,33 +31,12 @@ class abstractCharacter:
     UP_END_INIT = 22
     UP_END_POST = 23
     
-    # MELEE_BACK = 24
-    # MELEE_CLOSE = 25
-    # MELEE_FAR = 26
-    # MELEE_THIRD = 27
-    # MELEE_AIR = 28
-    # MELEE_UP = 29
-    # MELEE_FORWARD = 30
-    # MELEE_FOURTH = 31
-    # MELEE_DOWN = 32
-    # MELEE_DASH = 33
+    HIT_HIGH = 24
+    HIT_LOW = 25
     
-    # GRAB = 30
-    # GRAB_MISS = 31
-    # GRAB_HIT = 32
-    
-    # WEAK = 33
-    # WEAK_UP = 34
-    # WEAK_DOWN = 35
-    # WEAK_FORWARD = 36
-    # WEAK_CHARGED = 37
-    # WEAK_DASH = 38
-    
-    # STRONG = 39
-    # STRONG_UP = 40
-    # STRONG_FORWARD = 41
-    # STRONG_DOWN = 42
-    # STRONG_BACK = 43
+    GUARD = 26
+    MAGIC_GUARD = 27
+    WALL_BOUNCE_END = 28
     
     autoTransitions = {
         FORWARD_START: FORWARD_LOOP,
@@ -78,7 +57,13 @@ class abstractCharacter:
         BACK_END: IDLE,
         FORWARD_END: IDLE,
         DASH_BACK_END: IDLE,
-        DASH_FORWARD_END: IDLE
+        DASH_FORWARD_END: IDLE,
+        
+        HIT_HIGH: IDLE,
+        HIT_LOW: IDLE,
+        GUARD: IDLE,
+        MAGIC_GUARD: IDLE,
+        WALL_BOUNCE_END: IDLE
     }
     
     idleTransitions = {

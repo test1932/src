@@ -1,5 +1,7 @@
 import threading
 import pygame
+import time
+import json
 
 from menus.mainMenu import mainMenu
 from menus.options.textField import textField
@@ -13,7 +15,7 @@ from players.abstractPlayer import abstractPlayer
 
 from graphics.progressBar import progressBar
 
-DEBUG = True
+DEBUG = False#True
 
 class game:
     MENU = 0
@@ -42,6 +44,8 @@ class game:
         self.multicastString = None
         self.multicastConnListen = None
         self.multicastConnHost = None
+        self.multicastIP = None
+        self.multicastPort = None
         self.gameDisplay = False
         
         #graphics
@@ -79,7 +83,8 @@ class game:
                 print("None image")
         elif isinstance(image, pygame.Rect):
             # debugging images
-            pygame.draw.rect(self.screen, (255,0,0), (*coords, image[2], image[3]), 2)
+            if DEBUG:
+                pygame.draw.rect(self.screen, (255,0,0), (*coords, image[2], image[3]), 2)
         else:
             factor = self.WIDTH / (self.displayRange[1][0] - self.displayRange[0][0])
             (x,y) = coords
@@ -105,11 +110,15 @@ class game:
     def getHumanOpponent(self):
         return self.opponentHuman
         
-    def setMulticastConnListen(self, conn):
+    def setMulticastConnListen(self, conn, ip, port):
         self.multicastConnListen = conn
+        self.multicastIP = ip
+        self.multicastPort = port
         
-    def setMulticastConnHost(self, conn):
+    def setMulticastConnHost(self, conn, ip, port):
         self.multicastConnHost = conn
+        self.multicastIP = ip
+        self.multicastPort = port
         
     def setCurrentMenu(self, newMenu):
         self.currentMenu = newMenu
@@ -211,7 +220,7 @@ class game:
             y2 += -y1
             y1 = 0
             
-        self.displayRange = ((x1,y1),(x2,y2))
+        self.displayRange = [[x1,y1],[x2,y2]]
     
     def displayGame(self):
         # print(self.i % 1000)
@@ -228,8 +237,9 @@ class game:
                 self.sendNetworkDisplay()
         self.displayPlayers()
         self.displayProjectiles()
-        for player in self.players:
-            pygame.draw.rect(self.screen, (255,255,255), player.getHitbox())
+        if DEBUG:
+            for player in self.players:
+                pygame.draw.rect(self.screen, (255,255,255), player.getHitbox())
         self.displayBattleOverlay()
 
     def displayBattleOverlay(self):
@@ -276,21 +286,41 @@ class game:
             self.displayImage(image,(pos[0] - baseX - xOff, pos[1] - baseY - yOff))
             
     def sendNetworkDisplay(self):
-        displayRangeStr = f'{self.displayRange[0][0]},{self.displayRange[0][1]},{self.displayRange[1][0]},{self.displayRange[1][1]},'
-        displayRangeStr = displayRangeStr + f'{self.currentBattle.getRemainingTime()}/'
-        toSend = []
-        for p in self.players:
-            character = f'{p.getCharacterIndex()},{p.getAnimationNo()},{p.getFrameNo()},{p.getXPosition()},{p.getYPosition()},{p.getFacingDirection()},'
-            character = character + f'{p.getHealth()},{p.getMana()},{p.getSwap()};'
-            p.lockSpellCards()
-            spellcards = ",".join([spellcards.append(spellcard.toString()) for spellcard in p.getSpellCards()])
-            p.unlockSpellCards()
-            toSend.append(character + spellcards)
-        self.multicastConnHost.sendto((displayRangeStr + ("|".join(toSend))).encode(encoding = "utf-8"), ('224.1.1.1', 5007))
+        gameState = {
+            "time": self.currentBattle.getRemainingTime(),
+            "bounds": self.displayRange,
+            "players": [
+                {
+                    "x": p.getXPosition(),
+                    "y": p.getYPosition(),
+                    "character": p.getCharacterIndex(),
+                    "health": p.getHealth(),
+                    "mana": p.getMana(),
+                    "swap": p.getSwap(),
+                    "projectiles": [
+                        {
+                            "x": projectile.getXPosition(),
+                            "y": projectile.getYPosition(),
+                            "type": type(projectile).ID,
+                            "frame": projectile.getFrameNo(),
+                            "direction": projectile.getDirection()
+                        }
+                        for spellcard in p.getSpellCards() for projectile in spellcard.getProjectiles()
+                    ],
+                    "animation": p.getAnimationNo(),
+                    "frame": p.getFrameNo(),
+                    "direction": p.getFacingDirection()
+                }
+                for p in self.players
+            ] 
+        }
+        self.multicastConnHost.sendto(json.dumps(gameState).encode(encoding = "utf-8"), 
+                                      (self.multicastIP, self.multicastPort))
         
     def threadMulticastListen(self):
         while True:
             self.multicastString = self.multicastConnListen.recv(1024).decode()
+            time.sleep(0.01)
         
     def displayNetwork(self):
         if not self.gameDisplay:
@@ -298,51 +328,38 @@ class game:
         if self.multicastString == None:
             return
         
-        data = self.multicastString
-        [meta, playersStr] = data.split('/')
-        [x1, y1, x2, y2, time] = meta.split(',')
-        self.currentBattle.setTime(float(time))
-        self.displayRange = ((float(x1),float(y1)),(float(x2),float(y2)))
-        self.displayBackground(self.currentBattle.getBackground())
+        data = json.loads(self.multicastString)
         
-        players = playersStr.split('|')
-        for i,player in enumerate(players):
-            projectileSplit = player.split(';')
-            fields = projectileSplit[0].split(',')
-            characterIndex, animationNo, frameNo, x, y, facingLeft, health, mana, swap = \
-                int(fields[0]), \
-                int(fields[1]), \
-                int(fields[2]), \
-                float(fields[3]), \
-                float(fields[4]), \
-                int(fields[5]) == abstractPlayer.LEFT,\
-                float(fields[6]),\
-                float(fields[7]),\
-                float(fields[8])
-                
-            self.players[i].setHealth(health)
-            self.players[i].setMana(mana)
-            self.players[i].setSwapVal(swap)
+        self.currentBattle.setTime(data['time'])
+        self.displayRange = data['bounds']
+        self.displayBackground(self.currentBattle.getBackground())
+
+        #character images
+        for i,player in enumerate(data['players']):
+            self.players[i].setHealth(player['health'])
+            self.players[i].setMana(player['mana'])
+            self.players[i].setSwapVal(player['swap'])
             
-            projectiles = projectileSplit[1].split(':')
             if self.players[i].getCharacterIndex() == None:
-                self.players[i].setCharacter(characterMenu.characters[characterIndex], characterIndex)
+                self.players[i].setCharacter(characterMenu.characters[player['character']], player['character'])
             
-            self.players[i].setPosition((x,y)) 
+            self.players[i].setPosition((player['x'],player['y'])) 
             
-            self.players[i].setFacingDirection(abstractPlayer.LEFT if facingLeft else abstractPlayer.RIGHT)
-            self.displayCharacter(self.players[i], animationNo, frameNo)
-            self.displayNetworkProjectiles(projectiles, self.players[i])
+            self.players[i].setFacingDirection(abstractPlayer.LEFT if player['direction'] else abstractPlayer.RIGHT)
+            self.displayCharacter(self.players[i], player['animation'], player['frame'])
+        
+        #projectile images
+        for i,player in enumerate(data['players']):
+            self.displayNetworkProjectiles(player['projectiles'], self.players[i])
+            
         self.displayBattleOverlay()
             
     def displayNetworkProjectiles(self, projectiles, player):
         for projectile in projectiles:
-            if projectile == '':
+            if projectiles['type'] == -1:
                 continue
-            data = projectile.split(',')
-            ID, frameNo, x, y = data[0], data[1], data[2], data[3]
-            projectile = type(player).projectiles[ID]
-            self.displayImage(projectile.frames[frameNo], x, y)
+            projectile = type(player).projectiles[projectile['type']]
+            self.displayImage(projectile.frames[projectile['frame']], projectile['x'], projectile['y'])
             
     def displayCharacter(self, player, animationNo, frameNo):
         pos = player.getPosition()
@@ -350,9 +367,11 @@ class game:
         baseY = player.getCharacter().baseY
         
         player.setAnimationFrame(animationNo, frameNo)
-        image = player.getImage(isNetwork = True)
         
-        xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else -player.getCharacter().getXoffset()
+        image, baseWidth, width = player.getImage(isNetwork = True)
+            
+        xOff = player.getCharacter().getXoffset() if not player.isFacingLeft() else\
+            -player.getCharacter().getXoffset() + (width - baseWidth)
         yOff = player.getCharacter().getYoffset()
 
         self.displayImage(image,(pos[0] - baseX - xOff, pos[1] - baseY - yOff))

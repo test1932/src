@@ -7,18 +7,22 @@ from pygame import Rect
 
 class yukari(abstractCharacter):
     isSetup = False
-    projectiles = []
+    projectiles = [
+        
+    ]
     
-    MELEE_BACK = 24
-    MELEE_CLOSE = 24
-    MELEE_FORWARD = 25
-    MELEE_DASH_FORWARD = 26
-    MELEE_UP_START = 27
-    MELEE_UP_LOOP = 28
-    MELEE_UP_END = 29
-    MELEE_DOWN = 30
+    projectileImages = [
+        
+    ]
     
-    projectileImages = []
+    MELEE_BACK = 29
+    MELEE_CLOSE = 29
+    MELEE_FORWARD = 30
+    MELEE_DASH_FORWARD = 31
+    MELEE_UP_START = 32
+    MELEE_UP_LOOP = 33
+    MELEE_UP_END = 34
+    MELEE_DOWN = 35
     
     @classmethod
     def loadProjectileImgs(cls):
@@ -59,6 +63,13 @@ class yukari(abstractCharacter):
             (parts[11][3:8], (0,42)), # up loop
             (parts[11][2:0:-1], (0,42)), # up send init
             (parts[11][8:9], (0,42)), # up end post
+            
+            (parts[43][7:], (-12, -14)), # hit high
+            (parts[44], (25, 0)), # hit low
+            
+            (parts[42][:4], (13,-3)), # guard
+            (parts[42][4:8], (0,-5)), # magic guard
+            (parts[45][:5], (0,0)), # wall bounce end           #TODO offset
             
             #character specific:
             
@@ -148,13 +159,13 @@ class yukari(abstractCharacter):
         pos = [player.getXPosition() + xOff, y]
         
         x1Off = -(40 + 30) if player.isFacingLeft() else 40
-        meleeProjectile((pos[0] + x1Off, pos[1] - 50),(0,0),spellaction, player, 20, hitBoxes[0], hitBoxes[0])
+        meleeProjectile((pos[0] + x1Off, pos[1] - 50),(0,0),spellaction, player, 20, hitBoxes[0], hitBoxes[0], player.isFacingLeft())
         time.sleep(0.3)
         x2Off = -(50 + 70) if player.isFacingLeft() else 50
-        meleeProjectile((pos[0] + x2Off, pos[1] - 30),(0,0),spellaction, player, 20, hitBoxes[1], hitBoxes[1])
-        time.sleep(1)
+        meleeProjectile((pos[0] + x2Off, pos[1] - 30),(0,0),spellaction, player, 20, hitBoxes[1], hitBoxes[1], player.isFacingLeft())
+        time.sleep(0.1)
         x3Off = -(90 + 50) if player.isFacingLeft() else 90
-        meleeProjectile((pos[0] + x3Off, pos[1] + 10),(0,0),spellaction, player, 20, hitBoxes[2], hitBoxes[2])
+        meleeProjectile((pos[0] + x3Off, pos[1] + 10),(0,0),spellaction, player, 20, hitBoxes[2], hitBoxes[2], player.isFacingLeft())
         time.sleep(0.3)
     
     def forwardWeak(self, spellaction, player):

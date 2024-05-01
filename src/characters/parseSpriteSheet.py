@@ -29,4 +29,4 @@ def printFrame(sheetImage, bounds):
     
 if __name__ == '__main__':
     crops = parseSpriteSheet('assets/images/sheets/yukari.png')
-    printFrame(cv2.imread('assets/images/sheets/yukari.png'), crops[9][4])
+    printFrame(cv2.imread('assets/images/sheets/yukari.png'), crops[45][0])

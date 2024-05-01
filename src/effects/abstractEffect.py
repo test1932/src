@@ -9,8 +9,11 @@ class abstractEffect:
     def getRemainingTime(self):
         return self.timeRemaining
     
-    def applyEffect(self):
+    def startEffect(self):
         pass # setup
+    
+    def applyEffect(self):
+        pass # each frame
     
     def removeEffect(self):
         pass # cleanup

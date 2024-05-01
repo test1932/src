@@ -1,16 +1,17 @@
-from typing import List
-import pygame
-
 class abstractPhysicalBody:
-    def __init__(self, p, v, hitbox, image = None) -> None:
+    def __init__(self, p, v, hitbox, image = None, direction = 0) -> None:
         self.gravityApplies = True
         self.position = p
         self.velocity = v
         self.hitbox = hitbox # pygame Rect object
         self.image = image
+        self.direction = direction # right
     
     def collides(self, other):
         return other.hitbox.colliderect(self.hitbox)
+    
+    def getDirection(self):
+        return self.direction
     
     def setXPosition(self, x):
         self.hitbox.x += x - self.hitbox.x
