@@ -1,8 +1,6 @@
 import pygame
 
 class abstractCharacter:
-    slowDown = 5
-    
     #animation values:
     IDLE = 0
     TURN = 1
@@ -77,13 +75,84 @@ class abstractCharacter:
         DASH_BACK_START: DASH_BACK_END
     }
     
+    interruptDashForwardAnims = [
+        BACK_START,
+        BACK_END,
+        BACK_LOOP,
+        IDLE,
+        
+        UP_END_INIT,
+        UP_END_POST,
+        UP_LOOP,
+        UP_START_INIT,
+        UP_START_POST,
+        
+        DOWN_END_INIT,
+        DOWN_END_POST,
+        DOWN_LOOP,
+        DOWN_START_INIT,
+        DOWN_START_POST,
+        
+        DASH_BACK_END,
+        DASH_BACK_LOOP,
+        DASH_BACK_START,
+        
+        FORWARD_START,
+        FORWARD_END,
+        FORWARD_LOOP
+    ]
+        
+    interruptDashBackAnims = [
+        BACK_START,
+        BACK_END,
+        BACK_LOOP,
+        IDLE,
+        
+        UP_END_INIT,
+        UP_END_POST,
+        UP_LOOP,
+        UP_START_INIT,
+        UP_START_POST,
+        
+        DOWN_END_INIT,
+        DOWN_END_POST,
+        DOWN_LOOP,
+        DOWN_START_INIT,
+        DOWN_START_POST,
+        
+        DASH_FORWARD_END,
+        DASH_FORWARD_LOOP,
+        DASH_FORWARD_START,
+        
+        FORWARD_START,
+        FORWARD_END,
+        FORWARD_LOOP
+    ]
+    
+    interruptBackAnims = [
+        FORWARD_START,
+        FORWARD_END,
+        FORWARD_LOOP,
+        IDLE
+    ]
+    
+    interruptForwardAnims = [
+        BACK_START,
+        BACK_END,
+        BACK_LOOP,
+        IDLE
+    ]
+    
     def __init__(self, imagePath, gameObj, gravityWeight, baseX, baseY) -> None:
         self.name = ""
         self.baseX = baseX
         self.baseY = baseY
         self.__gameObj = gameObj
+        
         self.spritesheet = pygame.image.load(imagePath).convert_alpha()
-        self.frames = [] # list of lists of tuples (((x,y),(x,y)),yoff) 
+        self.frames = [] # list of lists of tuples (((x,y),(x,y)),yoff,rate)
+        self.animationRate = 5 # frames each image is shown for
+        
         self.currentXOffset = None
         self.currentYOffset = None
         self.gravityWeight = gravityWeight # eg 300
@@ -101,9 +170,10 @@ class abstractCharacter:
         return self.name
     
     def getFrame(self, animationIndex, frameIndex, flip = False):
-        actualIndex = frameIndex // abstractCharacter.slowDown
+        actualIndex = frameIndex // self.animationRate
         ((x1,y1),(x2,y2)) = self.frames[animationIndex][0][actualIndex]
         xoff,yoff = self.frames[animationIndex][1]
+        
         crop = pygame.Rect(x1,y1,x2-x1,y2-y1)
         frame = self.spritesheet.subsurface(crop)
         
@@ -117,18 +187,19 @@ class abstractCharacter:
             frame = pygame.transform.flip(frame, True, False)
             
         if animationIndex in abstractCharacter.autoTransitions and \
-                frameIndex == (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown) - 1:
+                frameIndex == (len(self.frames[animationIndex][0]) * self.animationRate) - 1:
             animationIndex = abstractCharacter.autoTransitions[animationIndex]
             frameIndex = 0
             
         elif animationIndex in self.characterTransitions and \
-                frameIndex == (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown) - 1:
+                frameIndex == (len(self.frames[animationIndex][0]) * self.animationRate) - 1:
             animationIndex = self.characterTransitions[animationIndex]
             frameIndex = 0
             
         else:
-            frameIndex = (frameIndex + 1) % (len(self.frames[animationIndex][0]) * abstractCharacter.slowDown)
+            frameIndex = (frameIndex + 1) % (len(self.frames[animationIndex][0]) * self.animationRate)
         
+        self.animationRate = self.frames[animationIndex][2]
         return (frame, animationIndex, frameIndex, x2 - x1)
     
     def setFrames(self, animations, baseWidth):

@@ -47,7 +47,7 @@ class progressBar:
     def getImage(self, screen):
         
         if self.segmented:
-            noFill = self.currentVal // (self.maxVal // self.noSegments)
+            noFill = int(self.currentVal // (self.maxVal // self.noSegments))
             remaining = self.currentVal % (self.maxVal // self.noSegments) # units of resource
         if self.image == None:
             if self.segmented:

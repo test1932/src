@@ -33,53 +33,53 @@ class yukari(abstractCharacter):
         parts = parseSpriteSheet(self.imagePath)
         
         self.framePoints = [
-            (parts[5][:11], (0,0)), # idle
-            (parts[5][11:14], (0,0)), # turn
+            (parts[5][:11], (0,0), 5), # idle
+            (parts[5][11:14], (0,0), 5), # turn
             
-            (parts[6][:2], (-7,0)), #forward start
-            (parts[6][7:9], (-7,0)), #forward end
-            (parts[6][2:7], (-7,0)), #forward loop
+            (parts[6][:2], (-7,0), 5), #forward start
+            (parts[6][7:9], (-7,0), 5), #forward end
+            (parts[6][2:7], (-7,0), 5), #forward loop
             
-            (parts[7][:2], (10,0)), #back start
-            (parts[7][7:9], (10,0)), #back end
-            (parts[7][2:7], (10,0)), #back loop
+            (parts[7][:2], (10,0), 5), #back start
+            (parts[7][7:9], (10,0), 5), #back end
+            (parts[7][2:7], (10,0), 5), #back loop
             
-            (parts[8][:4], (-8,0)), # dash forward start
-            (parts[8][9:12], (-8,0)), # dash forward end
-            (parts[8][4:9], (-8,0)), # dash forward loop
+            (parts[8][:4], (-8,0), 5), # dash forward start
+            (parts[8][9:12], (-8,0), 5), # dash forward end
+            (parts[8][4:9], (-8,0), 5), # dash forward loop
             
-            (parts[9][:3], (0,0)), # dash back start
-            (parts[9][8:11], (0,0)), # dash back end
-            (parts[9][3:8], (0,0)), # dash back loop
+            (parts[9][:3], (0,0), 5), # dash back start
+            (parts[9][8:11], (0,0), 5), # dash back end
+            (parts[9][3:8], (0,0), 5), # dash back loop
             
-            (parts[10][:3], (0,42)), # down start init
-            (parts[10][8:9], (0,42)), # down start post
-            (parts[10][3:8], (0,42)), # down loop
-            (parts[10][8:9], (0,42)), # down end init
-            (parts[10][2:0:-1], (0,42)), # down end post
+            (parts[10][:3], (0,42), 5), # down start init
+            (parts[10][8:9], (0,42), 5), # down start post
+            (parts[10][3:8], (0,42), 5), # down loop
+            (parts[10][8:9], (0,42), 5), # down end init
+            (parts[10][2:0:-1], (0,42), 5), # down end post
             
-            (parts[11][8:9], (0,42)), # up start init
-            (parts[11][:3], (0,42)), # up start post
-            (parts[11][3:8], (0,42)), # up loop
-            (parts[11][2:0:-1], (0,42)), # up send init
-            (parts[11][8:9], (0,42)), # up end post
+            (parts[11][8:9], (0,42), 5), # up start init
+            (parts[11][:3], (0,42), 5), # up start post
+            (parts[11][3:8], (0,42), 5), # up loop
+            (parts[11][2:0:-1], (0,42), 5), # up send init
+            (parts[11][8:9], (0,42), 5), # up end post
             
-            (parts[43][7:], (-12, -14)), # hit high
-            (parts[44], (25, 0)), # hit low
+            (parts[43][7:], (20, 0), 5), # hit high
+            (parts[44], (-25, -10), 5), # hit low
             
-            (parts[42][:4], (13,-3)), # guard
-            (parts[42][4:8], (0,-5)), # magic guard
-            (parts[45][:5], (0,0)), # wall bounce end           #TODO offset
+            (parts[42][:4], (13,-3), 8), # guard
+            (parts[42][4:8], (0,-5), 5), # magic guard
+            (parts[45][:5], (0,0), 5), # wall bounce end           #TODO offset
             
             #character specific:
             
-            (parts[12], (0,12)), # back or close attack
-            (parts[13], (40,-8)), # close AAA or far A
-            (parts[14], (0,0)), # dash A or air A
-            (parts[15][:4], (0,42)), # up A start
-            (parts[15][4:5], (0,42)), # up A loop
-            (parts[15][5:], (0,42)), # up A end
-            (parts[17][:6], (0,0)) # melee down
+            (parts[12], (0,12), 3), # back or close attack
+            (parts[13], (40,-8), 4), # close AAA or far A
+            (parts[14], (0,0), 5), # dash A or air A
+            (parts[15][:4], (0,42), 5), # up A start
+            (parts[15][4:5], (0,42), 5), # up A loop
+            (parts[15][5:], (0,42), 5), # up A end
+            (parts[17][:6], (0,0), 5) # melee down
         ]
 
         self.characterTransitions = {
@@ -102,7 +102,7 @@ class yukari(abstractCharacter):
         player.setAnimation(yukari.MELEE_FORWARD)
         player.setXVelocity(0)
         player.setYVelocity(0)
-        player.setCooldown(0.5)
+        player.setStun(0.5)
     
     def backMelee(self, spellaction, player):
         self.melee(spellaction, player, definitelyClose = True)
@@ -111,7 +111,7 @@ class yukari(abstractCharacter):
         player.setAnimation(yukari.MELEE_DOWN)
         player.setXVelocity(0)
         player.setYVelocity(0)
-        player.setCooldown(0.5)
+        player.setStun(0.5)
     
     def upMelee(self, spellaction, player):
         # TODO apply stun effect
@@ -120,7 +120,7 @@ class yukari(abstractCharacter):
         player.setYVelocity(0)
         time.sleep(1)
         player.setAnimation(yukari.MELEE_UP_END)
-        player.setCooldown(0.5)
+        player.setStun(0.5)
     
     def melee(self, spellaction, player, definitelyClose = False):
         otherPlayer = player.getOpponent()
@@ -147,15 +147,16 @@ class yukari(abstractCharacter):
     
     def __baseMelee(self, spellaction, player):
         player.setAnimation(yukari.MELEE_CLOSE)
-        player.setCooldown(0.5)
+        player.setStun(0.5)
         
         hitBoxes = [Rect(0,0,30,50), Rect(0,0,70,70), Rect(0,0,50,30)]
         
         y = player.getYPosition()
-        if not player.isFacingLeft():
-            xOff = 0
-        else:
-            xOff = player.getHitbox().width
+        xOff = 0
+        # if not player.isFacingLeft():
+        #     xOff = 0
+        # else:
+        #     xOff = player.getHitbox().width
         pos = [player.getXPosition() + xOff, y]
         
         x1Off = -(40 + 30) if player.isFacingLeft() else 40

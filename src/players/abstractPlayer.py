@@ -1,8 +1,11 @@
 from threading import RLock
+from effects.knockBack import knockback
 from physicalBody.abstractPhysicalBody import abstractPhysicalBody
 from characters.abstractCharacter import abstractCharacter
 from actions.abstractSpellAction import abstractSpellAction
 from pygame import Rect
+
+from physicalBody.attackProjectile import meleeProjectile, rangedProjectile
 
 class abstractPlayer(abstractPhysicalBody):
     LEFT_DIR = 0
@@ -38,7 +41,9 @@ class abstractPlayer(abstractPhysicalBody):
     #will have static list of projectile classes
     
     def __init__(self, gameObj) -> None:
-        abstractPhysicalBody.__init__(self, (0,0), (0,0), Rect(0,0,30,60))
+        abstractPhysicalBody.__init__(self, (0,0), (0,0), None)
+        self.hitbox = [Rect(0,0,30,60)]
+        
         self.animationNumber = abstractCharacter.IDLE
         self.animationFrame = 0
         self.timeSinceLastFrame = 0
@@ -48,8 +53,9 @@ class abstractPlayer(abstractPhysicalBody):
         self.mana = 1000
         self.swapVal = 1000
         self.dashing = False
+        self.blocking = False
         self.effects = []
-        self.cooldownTime = 0
+        self.StunTime = 0
         
         self.facingDirection = abstractPlayer.RIGHT_DIR
         self.characterIndex = None
@@ -67,6 +73,64 @@ class abstractPlayer(abstractPhysicalBody):
         self.meleeCounter = 0
         self.lastMeleeMade = 0 # time of last base melee attack
         
+    # override from abstract physical body
+    def collides(self, other):
+        if isinstance(other, abstractPlayer):
+            for rect_box in self.hitbox:
+                if rect_box.collidelist(other.getHitbox()) != -1:
+                    return True
+            return False
+        # other is just a rect
+        return other.getHitbox().collidelist(self.hitbox) != -1
+    
+    def setXPosition(self, x):
+        for box in self.hitbox:
+            box.x += x - box.x
+        self.position = (x, self.position[1])
+        
+    def setYPosition(self, y):
+        for box in self.hitbox:
+            box.y += y - box.y
+        self.position = (self.position[0], y)
+        
+    def getBoxXPositions(self):
+        return [(b.x, b.width) for b in self.hitbox]
+    
+    def getBoxYPositions(self):
+        return [(b.y, b.height) for b in self.hitbox]
+    
+    def getMaxXhitbox(self):
+        return max(self.getBoxXPositions(), key = lambda x:x[0]+x[1])
+    
+    def getMinXhitbox(self):
+        return min(self.getBoxXPositions(), key = lambda x:x[0])
+    
+    def getMaxYhitbox(self):
+        return max(self.getBoxYPositions(), key = lambda x:x[0]+x[1])
+    
+    def getMinYhitbox(self):
+        return min(self.getBoxYPositions(), key = lambda x:x[0])
+    
+    def getMiddleHitbox(self):
+        x = self.getMaxXhitbox()
+        y = self.getMaxYhitbox()
+        return [
+            (self.getMinXhitbox()[0] + x[0] + x[1]) / 2,
+            (self.getMinYhitbox()[0] + y[0] + y[1]) / 2
+        ]
+    
+    def distanceTo(self, other):
+        if isinstance(other, abstractPlayer):
+            return abs(self.getMiddleHitbox()[0] - other.getMiddleHitbox()[0])
+        pointX2 = other.hitbox.x + (other.hitbox.width / 2)
+        return abs(self.getMiddleHitbox[0] - pointX2)
+    
+    
+    
+    ###########################################################
+    ## Rest of class                                         ##
+    ###########################################################
+        
     #for debugging
     def spellcardsAreLocked(self):
         return self.__spellcardLock.locked()
@@ -80,35 +144,32 @@ class abstractPlayer(abstractPhysicalBody):
     def addEffect(self, newEffect):
         self.lockEffects()
         self.effects.append(newEffect)
+        newEffect.startEffect()
         self.unlockEffects()
         
-    def decrementEffects(self, timeDec):
+    def applyEffects(self, timeDec):
         self.lockEffects()
-        if self.cooldownTime > 0:
-            self.cooldownTime -= timeDec
-        self.effects = list(map(lambda x: x.decrementTime(timeDec), self.effects))
+        if self.StunTime > 0:
+            self.StunTime -= timeDec
+        map(lambda x: x.decrementTime(timeDec), self.effects)
         i = 0
         while i < len(self.effects):
             if self.effects[i].getRemainingTime() < 0:
                 self.effects[i].removeEffect()
                 del self.effects[i]
             else:
+                self.effects[i].applyEffect()
                 i += 1
         self.unlockEffects()
         
-    def isCooldown(self):
-        return self.cooldownTime > 0
+    def isStun(self):
+        return self.StunTime > 0
     
     def isDashing(self):
         return self.dashing
     
-    def flipDash(self):
-        if self.dashing:
-            self.dashing = False
-            # TODO set animation frame to dashing end
-        else:
-            self.dashing = True
-            # TODO set animation frame to dashing start
+    def isBlocking(self):
+        return self.blocking
     
     def addSpellaction(self, spellaction):
         self.lockSpellCards()
@@ -117,7 +178,8 @@ class abstractPlayer(abstractPhysicalBody):
         
     def removeSpellaction(self, spellaction):
         self.lockSpellCards()
-        self.playerSpells.remove(spellaction)
+        if spellaction in self.playerSpells:
+            self.playerSpells.remove(spellaction)
         self.unlockSpellCards()
     
     def holdKey(self, key):
@@ -127,8 +189,8 @@ class abstractPlayer(abstractPhysicalBody):
     def releaseKey(self, key):
         self.heldKeys.remove(key)
     
-    def setCooldown(self, value):
-        self.cooldownTime = value
+    def setStun(self, value):
+        self.StunTime = value
         
     def isFacingLeft(self):
         return self.facingDirection == abstractPlayer.LEFT_DIR
@@ -295,8 +357,10 @@ class abstractPlayer(abstractPhysicalBody):
                             self.heldKeys))[-3:]
         self.__replaceDirections(recent)
         recent.sort()
+            
         if str(recent) not in self.actionMapping:
             return
+        
         self.ignoreKeys = self.ignoreKeys.union(set(recent).intersection({abstractPlayer.MELEE, abstractPlayer.WEAK, abstractPlayer.STRONG}))
         try:
             action = self.actionMapping[str(recent)]
@@ -306,7 +370,9 @@ class abstractPlayer(abstractPhysicalBody):
             print("action not implemented")
     
     def handleHeldKeys(self):
-        if self.isCooldown():
+        if self.isDashing():
+            self.setYVelocity(0)
+        if self.isStun():
             return
         
         if abstractPlayer.UP in set(self.heldKeys).difference(self.ignoreKeys)\
@@ -324,23 +390,95 @@ class abstractPlayer(abstractPhysicalBody):
         self.handleHorizontalMovement()
         self.handleActions()
 
-    def handleHorizontalMovement(self):
+    def handleDashBlock(self):
+        if abstractPlayer.DASH not in self.heldKeys:
+            self.blocking = False
+            self.dashing = False
+            return False
+        
+        if abstractPlayer.RIGHT in self.heldKeys or abstractPlayer.LEFT in self.heldKeys:
+            self.blocking = False
+            self.dashing = True
+        elif self.getYVelocity() == 0:
+            self.blocking = True
+            self.dashing = False
+            
         if abstractPlayer.RIGHT in self.heldKeys:
-            self.setXVelocity(300)
-            if not self.isFacingLeft() and self.animationNumber in [abstractCharacter.IDLE, abstractCharacter.BACK_START, abstractCharacter.BACK_LOOP, abstractCharacter.BACK_END]:
-                self.setAnimation(abstractCharacter.FORWARD_START)
-            elif self.isFacingLeft() and self.animationNumber in [abstractCharacter.IDLE, abstractCharacter.FORWARD_START, abstractCharacter.FORWARD_LOOP, abstractCharacter.FORWARD_END]:
-                self.setAnimation(abstractCharacter.BACK_START)
+            self.setXVelocity(400)
+            if not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashForwardAnims:
+                self.setAnimation(abstractCharacter.DASH_FORWARD_START)
+            elif self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashBackAnims:
+                self.setAnimation(abstractCharacter.DASH_BACK_START)
+                
         elif abstractPlayer.LEFT in self.heldKeys:
-            self.setXVelocity(-300)
-            if self.isFacingLeft() and self.animationNumber in [abstractCharacter.IDLE, abstractCharacter.BACK_START, abstractCharacter.BACK_LOOP, abstractCharacter.BACK_END]:
-                self.setAnimation(abstractCharacter.FORWARD_START)
-            elif not self.isFacingLeft() and self.animationNumber in [abstractCharacter.IDLE, abstractCharacter.FORWARD_START, abstractCharacter.FORWARD_LOOP, abstractCharacter.FORWARD_END]:
-                self.setAnimation(abstractCharacter.BACK_START)
+            self.setXVelocity(-400)
+            if self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashForwardAnims:
+                self.setAnimation(abstractCharacter.DASH_FORWARD_START)
+            elif not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashBackAnims:
+                self.setAnimation(abstractCharacter.DASH_BACK_START)
+                
         else:
             if self.animationNumber in abstractCharacter.idleTransitions:
                 self.setAnimation(abstractCharacter.idleTransitions[self.animationNumber])
-                # print(f"animation is now {self.animationNumber}")
+            self.setXVelocity(0)
+        return True
+
+    def handleHorizontalMovement(self):
+        if self.handleDashBlock():
+            return
+        if abs(self.getYPosition() - (self.__gameObj.HEIGHT // 2)) > 20:
+            return
+        
+        if abstractPlayer.RIGHT in self.heldKeys:
+            self.setXVelocity(300)
+            if not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptForwardAnims:
+                self.setAnimation(abstractCharacter.FORWARD_START)
+            elif self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptBackAnims:
+                self.setAnimation(abstractCharacter.BACK_START)
+                
+        elif abstractPlayer.LEFT in self.heldKeys:
+            self.setXVelocity(-300)
+            if self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptForwardAnims:
+                self.setAnimation(abstractCharacter.FORWARD_START)
+            elif not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptBackAnims:
+                self.setAnimation(abstractCharacter.BACK_START)
+                
+        else:
+            if self.animationNumber in abstractCharacter.idleTransitions:
+                self.setAnimation(abstractCharacter.idleTransitions[self.animationNumber])
             self.setXVelocity(0)
             
-    # actions
+    def magicBlock(self):
+        self.setAnimation(abstractCharacter.MAGIC_GUARD)
+        #knockback
+        self.addEffect(knockback(self, 0.1, (100,0) if self.isFacingLeft() else (-100,0)))
+    
+    def meleeBlock(self):
+        self.setAnimation(abstractCharacter.GUARD)
+        #knockback, check direction
+        self.addEffect(knockback(self, 0.1, (100,0) if self.isFacingLeft() else (-100,0)))
+        
+    def hit(self, projectile):
+        if isinstance(projectile, meleeProjectile):
+            if self.blocking:
+                projectile.destroy()
+                return
+        elif isinstance(projectile, rangedProjectile):
+            if self.dashing:
+                return
+            if self.blocking:
+                projectile.destroy()
+                return
+        
+        #check if low or high
+        if self.getYPosition() - projectile.getYPosition() > 0:
+            self.setAnimation(abstractCharacter.HIT_HIGH)
+        else:
+            self.setAnimation(abstractCharacter.HIT_LOW)
+        self.clearSpells()
+        projectile.applyEffect()
+    
+    def clearSpells(self):
+        self.lockSpellCards()
+        self.playerSpells = []
+        self.unlockSpellCards()

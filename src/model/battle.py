@@ -1,6 +1,7 @@
 import time
 import pygame
 from physicalBody.attackProjectile import meleeProjectile
+from players.abstractPlayer import abstractPlayer
 
 class battle:
     def __init__(self, gameObj, backgroundPath, nextBattle, maxLength = 180) -> None:
@@ -34,13 +35,6 @@ class battle:
         
         self.timeRemaining -= self.timeIncrement
         
-        for player in self.__gameObj.getPlayers():
-            player.decrementEffects(self.timeIncrement)
-            if not player.isDashing():
-                player.incrementMana(0.001 * self.timeIncrement)
-            else:
-                player.decrementMana(0.001 * self.timeIncrement)
-        
         self.handlePlayerCollision()
         self.handleWallCollision()
         self.updatePlayerPositions()
@@ -48,23 +42,36 @@ class battle:
         self.projectileCollision()
         self.checkPlayerFlip()
         self.applyGravity()
+        
+        for player in self.__gameObj.getPlayers():
+            player.applyEffects(self.timeIncrement)
+            if not player.isBlocking():
+                player.incrementMana(100 * self.timeIncrement)
+            else:
+                player.decrementMana(100 * self.timeIncrement)
+        
         if self.checkForWinner():
             pass # do winner behaviour
-        
+                
     def checkPlayerFlip(self):
         players = self.__gameObj.getPlayers()
-        if (players[0].getHitbox().x > players[1].getHitbox().x) !=\
-                players[0].isFacingLeft():
-            if not players[0].isCooldown():
-                self.__gameObj.getPlayers()[0].flipFacingDirection()
-            if not players[1].isCooldown():
-                self.__gameObj.getPlayers()[1].flipFacingDirection()
+        [p1,p2] = players
+        midPlayer1 = (p1.getMinXhitbox()[0] + (x:=p1.getMaxXhitbox())[0] + x[1]) / 2
+        midPlayer2 = (p2.getMinXhitbox()[0] + (x:=p2.getMaxXhitbox())[0] + x[1]) / 2
+        
+        pdirs = [abstractPlayer.RIGHT_DIR,  abstractPlayer.LEFT_DIR]
+        if midPlayer1 > midPlayer2:
+            pdirs[0], pdirs[1] = pdirs[1], pdirs[0]
+        
+        for i in range(len([p1,p2])):
+            if players[i].getFacingDirection() != pdirs[i] and not players[i].isStun():
+                players[i].flipFacingDirection()
         
     def handleWallCollision(self):
         for player in self.__gameObj.getPlayers():
-            if player.getHitbox().x <= 50:
+            if player.getMinXhitbox()[0] <= 50:
                 player.setXVelocity(max(player.getXVelocity(), 0))
-            elif player.getHitbox().x + player.getHitbox().width >= self.__gameObj.WIDTH - 50:
+            elif (y:= player.getMaxXhitbox())[0] + y[1] >= self.__gameObj.WIDTH - 50:
                 player.setXVelocity(min(player.getXVelocity(), 0))
         
     def checkForWinner(self):
@@ -90,8 +97,9 @@ class battle:
         
     def collideProjectilesOfSpellcard(self, spellaction, player):
         for projectile in spellaction.getProjectiles():
-            if projectile.collides(player):
-                projectile.applyEffect()
+            if player.collides(projectile):
+                player.hit(projectile)
+                # projectile.applyEffect()
             self.collideWithOtherProjectiles(projectile, player)
             
     def collideWithOtherProjectiles(self, projectile, otherPlayer):
@@ -122,10 +130,13 @@ class battle:
                 player.setYPosition(self.__gameObj.HEIGHT // 2)
                 player.setYVelocity(0)
                 continue
-            increment = player.getGravity()
-            if player.getYPosition() > self.__gameObj.HEIGHT // 2:
-                increment = -increment
-            player.setYVelocity(player.getYVelocity() + increment)
+            if player.isStun():
+                player.setYVelocity(20 if player.getYPosition() < self.__gameObj.HEIGHT // 2 else -20)
+            else:
+                increment = player.getGravity()
+                if player.getYPosition() > self.__gameObj.HEIGHT // 2:
+                    increment = -increment
+                player.setYVelocity(player.getYVelocity() + increment)
             
     def updatePlayerPositions(self):
         for player in self.__gameObj.getPlayers():

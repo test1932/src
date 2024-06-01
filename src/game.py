@@ -15,7 +15,8 @@ from players.abstractPlayer import abstractPlayer
 
 from graphics.progressBar import progressBar
 
-DEBUG = False#True
+DEBUG = True
+# DEBUG = False
 
 class game:
     MENU = 0
@@ -30,7 +31,7 @@ class game:
         self.baseFont = pygame.font.Font(pygame.font.get_default_font(), 20)
         self.screen = pygame.display.set_mode([self.WIDTH,self.HEIGHT])
         self.state = game.MENU
-        self.displayRange = [[0, self.WIDTH], [0, self.HEIGHT]]
+        self.displayRange = [[0, 0], [self.WIDTH, self.HEIGHT]]
         
         #game state
         self.players = [humanPlayer(self, 0), None]
@@ -177,57 +178,61 @@ class game:
                 text = option.getCurrentKey()
                 self.screen.blit(self.baseFont.render(text, False, (0,0,0)), (x + self.WIDTH // 2, y + yInc))
     
+    # wtf
     def setZoom(self):
         [p1, p2] = self.players
-        xDiff = abs(p1.getHitbox().x - p2.getHitbox().x) + max(p1.getHitbox().width, p2.getHitbox().width)
-        yDiff = abs(p1.getYPosition() - p2.getYPosition())
-        x1 = max(min(p1.getHitbox().x, p2.getHitbox().x), 0)
-        x2 = min(max(p1.getHitbox().x + p1.getHitbox().width, p2.getHitbox().x + p2.getHitbox().width), self.WIDTH)
-        y1 = max(min(p1.getHitbox().y, p2.getHitbox().y), 0)
-        y2 = min(max(p1.getHitbox().y + p1.getHitbox().height, p2.getHitbox().y + p2.getHitbox().height), self.HEIGHT)
+        [mid1, mid2] = [p.getMiddleHitbox() for p in self.players]
+        
+        xDiff = abs(mid1[0] - mid2[0]) + 400
+        yDiff = abs(mid1[1] - mid2[1]) + 400
+        
+        x1 = max(min(p1.getMinXhitbox()[0], p2.getMinXhitbox()[0]), 0)
+        x2 = min(max((x:=p1.getMaxXhitbox())[0] + x[1], (y:=p2.getMaxXhitbox())[0] + y[1]), self.WIDTH)
+        y1 = max(min(p1.getMinYhitbox()[0], p2.getMinYhitbox()[0]), 0)
+        y2 = min(max((x:=p1.getMaxYhitbox())[0] + x[1], (y:=p2.getMaxYhitbox())[0] + y[1]), self.HEIGHT)
+        
+        midX = (x2 + x1) / 2
+        midY = (y2 + y1) / 2
+        
+        proportionX = xDiff / self.WIDTH
+        proportionY = yDiff / self.HEIGHT
             
-        if (x2 - x1) < self.WIDTH / 2:
-            d = self.WIDTH / 2 - (x2 - x1)
-            x1 -= d / 2
-            x2 += d / 2
-            xDiff = self.WIDTH / 2
-
-        buffer = 200 if xDiff + 200 <= self.WIDTH else self.WIDTH - xDiff
-        xDiff += buffer
-        x1 -= buffer // 2
-        x2 += buffer // 2
-            
-        if xDiff / self.WIDTH > yDiff / self.HEIGHT:
-            yDiff = ((self.HEIGHT * xDiff) / self.WIDTH) - (y2 - y1) # amount needing to be split
-            y1 -= yDiff / 2
-            y2 += yDiff / 2
+        fromX, toX, fromY, toY = 0, self.WIDTH, 0, self.HEIGHT
+        
+        if proportionX < 1/3 and (proportionX > proportionY or proportionY < 1/3):
+            proportion = 1/3
+        elif proportionX > proportionY:
+            proportion = proportionX
         else:
-            xDiff = ((self.WIDTH * yDiff) / self.HEIGHT) - (x2 - x1) # amount needing to be split
-            x1 -= xDiff / 2
-            x2 += xDiff / 2
+            proportion = proportionY
+        
+        multiplier = (proportion / 2)
+        fromX = midX - self.WIDTH * multiplier
+        toX = midX + self.WIDTH * multiplier
+        fromY = midY - self.HEIGHT * multiplier
+        toY = midY + self.HEIGHT * multiplier
             
-        if x2 > self.WIDTH:
-            x1 -= x2 - self.WIDTH
-            x2 = self.WIDTH
-        elif x1 < 0:
-            x2 += -x1
-            x1 = 0
+        if toX > self.WIDTH:
+            fromX -= toX - self.WIDTH
+            toX = self.WIDTH
+        elif fromX < 0:
+            toX += -fromX
+            fromX = 0
             
-        if y2 > self.HEIGHT:
-            y1 -= y2 - self.HEIGHT
-            y2 = self.HEIGHT
-        elif y1 < 0:
-            y2 += -y1
-            y1 = 0
-            
-        self.displayRange = [[x1,y1],[x2,y2]]
+        if toY > self.HEIGHT:
+            fromY -= toY - self.HEIGHT
+            toY = self.HEIGHT
+        elif fromY < 0:
+            toY += -fromY
+            fromY = 0
+        
+        self.displayRange = [[max(fromX,0), max(fromY,0)], [min(toX,self.WIDTH), min(toY,self.HEIGHT)]]
     
     def displayGame(self):
         # print(self.i % 1000)
         # self.i += 1
         self.setZoom()
         if self.multicastConnListen == None:
-            self.setZoom()
             self.displayBackground(self.currentBattle.getBackground())
         if type(self.players[1]) == networkPlayer:
             if self.multicastConnListen != None:
@@ -239,7 +244,8 @@ class game:
         self.displayProjectiles()
         if DEBUG:
             for player in self.players:
-                pygame.draw.rect(self.screen, (255,255,255), player.getHitbox())
+                for box in player.getHitbox():
+                    pygame.draw.rect(self.screen, (255,255,255), box)
         self.displayBattleOverlay()
 
     def displayBattleOverlay(self):

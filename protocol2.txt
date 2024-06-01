@@ -1,0 +1,21 @@
+{
+	"game": {
+	
+	},
+	"players": [
+		{
+			"x": 2,
+			"y": 3,
+			"character": 2 (yy),
+			"projectiles": [
+				{
+					"hasImage": False,
+					"image": [
+						<x>,<y>,<width>,<height>
+					] or 5
+				}
+			"animation": 4,
+			"frame": 3,
+			"isFacingLeft": False
+		}
+}

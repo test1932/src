@@ -1,3 +1,4 @@
+from effects.knockBack import knockback
 from physicalBody.abstractProjectile import abstractProjectile
 
 class attackProjectile(abstractProjectile):
@@ -6,7 +7,11 @@ class attackProjectile(abstractProjectile):
         self.damage = damage
         
     def applyEffect(self):
-        self.getOwner().getOpponent().decrementHealth(self.damage)
+        opp = self.getOwner().getOpponent()
+        opp.decrementHealth(self.damage)
+        opp.addEffect(knockback(
+            opp, 0.1, (100,0) if opp.isFacingLeft() else (-100,0)
+        ))
         self.destroy()
 
 class meleeProjectile(attackProjectile):
@@ -15,7 +20,7 @@ class meleeProjectile(attackProjectile):
         super().__init__(p, v, spellCard, owner, damage, hitbox, image, direction)
         
     def applyEffect(self):
-        self.getOwner().getOpponent().decrementHealth(self.damage)
+        super().applyEffect()
         self.getSpellCard().removeAll()
         self.getSpellCard().end()
         # TODO knockback/wall slam/stun
@@ -25,9 +30,5 @@ class rangedProjectile(attackProjectile):
         super().__init__(p, v, spellCard, owner, damage, hitbox, image, direction)
         
     def applyEffect(self):
-        if not self.getOwner().getOpponent().isDashing():
-            self.getOwner().getOpponent().decrementHealth(self.damage)
-            # TODO minor knockback, stun
-        else:
-            self.getOwner().getOpponent().decrementMana(self.damage)
+        super().applyEffect()
         self.destroy()
