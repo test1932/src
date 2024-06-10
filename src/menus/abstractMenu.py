@@ -12,7 +12,10 @@ class abstractMenu:
         self.__focus = False
         self.__options = options
         self.__pos = 0
-        self.background = pygame.transform.scale(pygame.image.load(bgPath), (gameObj.WIDTH, gameObj.HEIGHT))
+        if bgPath != None:
+            self.background = pygame.transform.scale(pygame.image.load(bgPath), (gameObj.WIDTH, gameObj.HEIGHT))
+        else:
+            self.background = None
     
     def getGameObj(self):
         return self.__gameObj

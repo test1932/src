@@ -17,3 +17,6 @@ class abstractEffect:
     
     def removeEffect(self):
         pass # cleanup
+    
+    def setDuration(self, val):
+        self.timeRemaining = val

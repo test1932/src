@@ -1,6 +1,21 @@
 import pygame
+from characters.parseSpriteSheet import *
 
 class abstractCharacter:
+    DEFAULT_IMAGE_PATH = "assets/images/characters"
+    
+    @classmethod
+    def pathTo(cls, subclass, fileName):
+        return f"{cls.DEFAULT_IMAGE_PATH}/{subclass.__name__}/{fileName}"
+    
+    icon = None
+    spritesheet = None
+    portraits = None
+    
+    frames = []
+    characterTransitions = None
+    baseWidth = 0
+    
     #animation values:
     IDLE = 0
     TURN = 1
@@ -143,22 +158,32 @@ class abstractCharacter:
         IDLE
     ]
     
-    def __init__(self, imagePath, gameObj, gravityWeight, baseX, baseY) -> None:
+    @classmethod
+    def setupPortaits(cls):
+        parts = parseSpriteSheet(cls.portraitPath)
+        cls.portraitPoints = [item for row in parts for item in row]
+    
+    @classmethod
+    def setup(cls):
+        cls.setup = True
+        # needs defined in subclasses
+    
+    def __init__(self, gameObj, gravityWeight, baseX, baseY) -> None:
         self.name = ""
         self.baseX = baseX
         self.baseY = baseY
         self.__gameObj = gameObj
-        
-        self.spritesheet = pygame.image.load(imagePath).convert_alpha()
-        self.frames = [] # list of lists of tuples (((x,y),(x,y)),yoff,rate)
         self.animationRate = 5 # frames each image is shown for
         
         self.currentXOffset = None
         self.currentYOffset = None
         self.gravityWeight = gravityWeight # eg 300
-        self.imagePath = imagePath
-        self.characterTransitions = None
-        self.baseWidth = 0
+        
+    def setIntroAnim(self, partnerClass):
+        pass # for subclasses
+    
+    def setOutroAnim(self, wasWin):
+        pass # for subclasses
         
     def getJump(self):
         return self.gravityWeight
@@ -171,11 +196,11 @@ class abstractCharacter:
     
     def getFrame(self, animationIndex, frameIndex, flip = False):
         actualIndex = frameIndex // self.animationRate
-        ((x1,y1),(x2,y2)) = self.frames[animationIndex][0][actualIndex]
-        xoff,yoff = self.frames[animationIndex][1]
+        ((x1,y1),(x2,y2)) = self.__class__.frames[animationIndex][0][actualIndex]
+        xoff,yoff = self.__class__.frames[animationIndex][1]
         
         crop = pygame.Rect(x1,y1,x2-x1,y2-y1)
-        frame = self.spritesheet.subsurface(crop)
+        frame = self.__class__.spritesheet.subsurface(crop)
         
         self.currentXOffset = xoff
         self.currentYOffset = yoff
@@ -187,24 +212,25 @@ class abstractCharacter:
             frame = pygame.transform.flip(frame, True, False)
             
         if animationIndex in abstractCharacter.autoTransitions and \
-                frameIndex == (len(self.frames[animationIndex][0]) * self.animationRate) - 1:
+                frameIndex == (len(self.__class__.frames[animationIndex][0]) * self.animationRate) - 1:
             animationIndex = abstractCharacter.autoTransitions[animationIndex]
             frameIndex = 0
             
-        elif animationIndex in self.characterTransitions and \
-                frameIndex == (len(self.frames[animationIndex][0]) * self.animationRate) - 1:
-            animationIndex = self.characterTransitions[animationIndex]
+        elif animationIndex in self.__class__.characterTransitions and \
+                frameIndex == (len(self.__class__.frames[animationIndex][0]) * self.animationRate) - 1:
+            animationIndex = self.__class__.characterTransitions[animationIndex]
             frameIndex = 0
             
         else:
-            frameIndex = (frameIndex + 1) % (len(self.frames[animationIndex][0]) * self.animationRate)
+            frameIndex = (frameIndex + 1) % (len(self.__class__.frames[animationIndex][0]) * self.animationRate)
         
-        self.animationRate = self.frames[animationIndex][2]
+        self.animationRate = self.__class__.frames[animationIndex][2]
         return (frame, animationIndex, frameIndex, x2 - x1)
     
-    def setFrames(self, animations, baseWidth):
-        self.frames = animations
-        self.baseWidth = baseWidth
+    @classmethod
+    def setFrames(cls, animations, baseWidth):
+        cls.frames = animations
+        cls.baseWidth = baseWidth
         
     def getXoffset(self):
         return self.currentXOffset
@@ -212,7 +238,23 @@ class abstractCharacter:
     def getYoffset(self):
         return self.currentYOffset
     
+    def decrementSwapVal(self, swapval, val):
+        return swapval - val
+    
+    def incrementSwapVal(self, swapval, timeDiff):
+        return swapval + 20 * timeDiff
+    
+    
+    
+    
+    
     # action stubs
+    def dashForward(self, player):
+        pass
+    
+    def dashBack(self, player):
+        pass
+    
     def forwardMelee(self, player):
         raise NotImplementedError("stub action")
     

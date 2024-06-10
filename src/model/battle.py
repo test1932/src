@@ -2,9 +2,33 @@ import time
 import pygame
 from physicalBody.attackProjectile import meleeProjectile
 from players.abstractPlayer import abstractPlayer
+from players.humanPlayer import humanPlayer
+
+#TODO
+# - intros
+# - possible pre-battle dialogue
+# - "3 2 1 Battle!"
+# - "winner on damage and timeout"
+# - take two functions - one for p1 win, one for p2 win
+
+# dialogue:
+# [(player_focus, c_1, sprite_1, c_2, sprite_2, dialogue)]
 
 class battle:
-    def __init__(self, gameObj, backgroundPath, nextBattle, maxLength = 180) -> None:
+    INTROS = 0
+    PRE_BATTLE_DIALOGUE = 1
+    STARTING = 2
+    BATTLING = 3
+    OUTROS = 4
+    POST_BATTLE_DIALOGUE = 5
+    DONE = 6
+    
+    def __init__(self, gameObj, backgroundPath, nextBattle, maxLength = 180, 
+            preBattleDialogue = [], postBattleDialogue = []) -> None:
+        self.preBattleDialogue = preBattleDialogue
+        self.postBattleDialogue = postBattleDialogue
+        self.curDialogueIndex = 0
+        
         self.__gameObj = gameObj
         self.lastUpdateTime = None # time of last frame
         self.timeIncrement = None # time since last frame
@@ -12,7 +36,21 @@ class battle:
         self.nextBattle = nextBattle
         
         self.timeRemaining = maxLength
+        self.introTimeRemaining = 3
         self.winner = None
+        
+        self.heldKeys = set()
+        self.ignoreKeys = set()
+        
+        self.state = battle.INTROS
+        
+    def startIntros(self):
+        for player in self.__gameObj.players:
+            player.intro()
+            
+    def startOutros(self, winner):
+        for player in self.__gameObj.players:
+            player.outro(winner == player)
         
     def getRemainingTime(self):
         return self.timeRemaining
@@ -25,6 +63,38 @@ class battle:
     
     def getNextBattle(self):
         return self.nextBattle
+    
+    def handleInput(self, event):
+        if self.state == battle.BATTLING:
+            self.handleBattleInput(event)
+        else:
+            if event.type == pygame.KEYDOWN:
+                if event.key in self.heldKeys:
+                    self.ignoreKeys.add(event.key)
+                else:
+                    self.heldKeys.add(event.key)
+            elif event.type == pygame.KEYUP:
+                if event.key in self.heldKeys:
+                    self.heldKeys.remove(event.key)
+                if event.key in self.ignoreKeys:
+                    self.ignoreKeys.remove(event.key)
+                
+        
+    def handleBattleInput(self, event):
+        for player in self.__gameObj.players:
+            if not type(player) == humanPlayer:
+                continue
+            
+            if event.type == pygame.KEYDOWN and event.key in player.mapping:
+                player.heldKeys.append(player.mapping[event.key])
+                self.__gameObj.sendKeyPress(player.mapping[event.key], 0)
+                
+            if event.type == pygame.KEYUP and event.key in player.mapping:
+                if player.mapping[event.key] in player.heldKeys:
+                    player.heldKeys.remove(player.mapping[event.key])
+                if player.mapping[event.key] in player.ignoreKeys:
+                    player.ignoreKeys.remove(player.mapping[event.key])
+                self.__gameObj.sendKeyPress(player.mapping[event.key], 1)
         
     def updatebattle(self):
         if self.lastUpdateTime == None:
@@ -33,6 +103,40 @@ class battle:
         self.timeIncrement = time.time() - self.lastUpdateTime
         self.lastUpdateTime = time.time()
         
+        if self.state == battle.INTROS:
+            self.countdownTo(battle.PRE_BATTLE_DIALOGUE)
+        elif self.state == battle.PRE_BATTLE_DIALOGUE:
+            self.handleDialogue(battle.STARTING, self.preBattleDialogue)
+        elif self.state == battle.STARTING:
+            self.countdownTo(battle.BATTLING)
+        elif self.state == battle.BATTLING:
+            self.updateFighting()
+        elif self.state == battle.OUTROS:
+            self.countdownTo(battle.POST_BATTLE_DIALOGUE)
+        elif self.state == battle.POST_BATTLE_DIALOGUE:
+            self.handleDialogue(battle.DONE, self.postBattleDialogue)
+            if self.state == battle.DONE:
+                self.endBattle()
+        
+    def handleDialogue(self, nextState, dialogue):
+        if self.curDialogueIndex == len(dialogue):
+            self.state = nextState
+            self.curDialogueIndex = 0
+        
+        ofInterestKeys = self.heldKeys.difference(self.ignoreKeys)
+        if pygame.K_z in ofInterestKeys:
+            self.curDialogueIndex += 1
+    
+    def endBattle(self):
+        pass # TODO
+        
+    def countdownTo(self, nextState):
+        self.introTimeRemaining -= self.timeIncrement
+        if self.introTimeRemaining <= 0:
+            self.state = nextState
+            self.introTimeRemaining = 1
+        
+    def updateFighting(self):
         self.timeRemaining -= self.timeIncrement
         
         self.handlePlayerCollision()
@@ -45,13 +149,16 @@ class battle:
         
         for player in self.__gameObj.getPlayers():
             player.applyEffects(self.timeIncrement)
+            player.incrementSwapVal(self.timeIncrement)
             if not player.isBlocking():
                 player.incrementMana(100 * self.timeIncrement)
             else:
                 player.decrementMana(100 * self.timeIncrement)
+                
+        self.updatePlayerPositions()
         
         if self.checkForWinner():
-            pass # do winner behaviour
+            self.state = battle.OUTROS
                 
     def checkPlayerFlip(self):
         players = self.__gameObj.getPlayers()
@@ -113,7 +220,7 @@ class battle:
     def projectileCollisionWithSpellcard(self, spellcard, projectile):
         for secondProjectile in spellcard.getProjectiles():
             if not secondProjectile.collides(projectile) \
-                    or type(projectile) == meleeProjectile or type(secondProjectile) == meleeProjectile:
+                    or isinstance(projectile, meleeProjectile) or isinstance(secondProjectile, meleeProjectile):
                 continue
             secondProjectile.collideProjectile(projectile)
             projectile.collideProjectile(secondProjectile)
@@ -123,15 +230,24 @@ class battle:
             if player.getYPosition() == self.__gameObj.HEIGHT // 2:
                 continue
             # if player is about to meet the middle
-            if (player.getYPosition() < self.__gameObj.HEIGHT // 2 and player.getYPosition() + self.timeIncrement * \
-                    (player.getYVelocity() + 0.3) >= self.__gameObj.HEIGHT // 2) or \
-                    (player.getYPosition() > self.__gameObj.HEIGHT // 2 and player.getYPosition() + \
-                    self.timeIncrement * (player.getYVelocity() - 0.3) <= self.__gameObj.HEIGHT // 2):
+            
+            middleAbove = player.getYPosition() < self.__gameObj.HEIGHT // 2 and\
+                player.getYVelocity() > 0 and\
+                (player.getYPosition() + self.timeIncrement * \
+                player.getYVelocity() + 5 >= self.__gameObj.HEIGHT // 2)
+            
+            middleBelow = player.getYPosition() > self.__gameObj.HEIGHT // 2 and\
+                player.getYVelocity() < 0 and\
+                (player.getYPosition() + self.timeIncrement * \
+                player.getYVelocity() - 5 <= self.__gameObj.HEIGHT // 2)
+            
+            if middleAbove or middleBelow:
                 player.setYPosition(self.__gameObj.HEIGHT // 2)
                 player.setYVelocity(0)
+                player.turnedInAir = abstractPlayer.NO_AIR_DASH
                 continue
-            if player.isStun():
-                player.setYVelocity(20 if player.getYPosition() < self.__gameObj.HEIGHT // 2 else -20)
+            # if player.isStun():
+            #     player.setYVelocity(20 if player.getYPosition() < self.__gameObj.HEIGHT // 2 else -20)
             else:
                 increment = player.getGravity()
                 if player.getYPosition() > self.__gameObj.HEIGHT // 2:
@@ -139,6 +255,7 @@ class battle:
                 player.setYVelocity(player.getYVelocity() + increment)
             
     def updatePlayerPositions(self):
+        # print([player.getXVelocity() for player in self.__gameObj.getPlayers()], [player.isStun() for player in self.__gameObj.getPlayers()])
         for player in self.__gameObj.getPlayers():
             player.setXPosition(player.getXPosition() + self.timeIncrement * player.getXVelocity())
             player.setYPosition(player.getYPosition() + self.timeIncrement * player.getYVelocity())

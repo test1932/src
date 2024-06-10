@@ -1,5 +1,6 @@
 from menus.options.abstractOption import abstractOption
 from players.abstractPlayer import abstractPlayer
+import pygame
 
 class keyBindingOption(abstractOption):
     def __init__(self, keyName, player, owner, currentKey, action) -> None:
@@ -9,7 +10,7 @@ class keyBindingOption(abstractOption):
         self.action = action
         
     def getCurrentKey(self):
-        return str(self.currentKey)
+        return pygame.key.name(self.currentKey)
     
     def handler(self):
         self.getOwner().toggleFocus()

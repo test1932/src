@@ -15,3 +15,8 @@ class knockback(abstractEffect):
         
     def applyEffect(self):
         return super().applyEffect()
+    
+    def removeEffect(self):
+        super().removeEffect()
+        self.player.setXVelocity(0)
+        self.player.setYVelocity(0)

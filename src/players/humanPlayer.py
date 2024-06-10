@@ -10,7 +10,8 @@ class humanPlayer(abstractPlayer):
             pygame.K_s: abstractPlayer.DASH,
             pygame.K_z: abstractPlayer.MELEE,
             pygame.K_x: abstractPlayer.WEAK,
-            pygame.K_c: abstractPlayer.STRONG
+            pygame.K_c: abstractPlayer.STRONG,
+            pygame.K_o: abstractPlayer.SWAP
         }
     
     mapping2 = {
@@ -21,7 +22,8 @@ class humanPlayer(abstractPlayer):
             pygame.K_v: abstractPlayer.DASH,
             pygame.K_z: abstractPlayer.MELEE,
             pygame.K_x: abstractPlayer.WEAK,
-            pygame.K_c: abstractPlayer.STRONG
+            pygame.K_c: abstractPlayer.STRONG,
+            pygame.K_p: abstractPlayer.SWAP
         }
     
     def __init__(self, gameObj, index) -> None:

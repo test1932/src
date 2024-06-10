@@ -3,7 +3,7 @@ from menus.settingsMenu import settingsMenu
 
 class settingsOption(abstractOption):
     def __init__(self, gameObj, owner) -> None:
-        super().__init__("Settings", owner)
+        super().__init__("CONFIG", owner)
         self.settingsMenu = settingsMenu(owner, gameObj)
         self.__gameObj = gameObj
         

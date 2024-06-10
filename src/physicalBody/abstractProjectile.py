@@ -8,12 +8,14 @@ class abstractProjectile(abstractPhysicalBody):
     def __init__(self, p, v, spellCard, owner, hitbox, image, direction) -> None:
         super().__init__(p, v, hitbox, image, direction)
         self.effect = None
-        self.damage = 0
-        self.priority = 0 # 'weight' of projectile
+        self.__isDestroyed = False
         self.__spellcard = spellCard
         self.__owner = owner
         self.frameNo = 0
         self.__spellcard.add(self)
+        
+    def isDestroyed(self):
+        return self.isDestroyed
         
     def applyEffect(self):
         pass
@@ -28,15 +30,14 @@ class abstractProjectile(abstractPhysicalBody):
         return self.frames[index]
     
     def destroy(self):
+        self.__isDestroyed = True
         self.__spellcard.remove(self)
         
     def getSpellCard(self):
         return self.__spellcard
     
     def collideProjectile(self, otherProjectile):
-        self.priority -= otherProjectile.priority
-        if self.priority <= 0:
-            self.destroy()
+        self.destroy()
             
     def getFrameNo(self):
         return self.frameNo

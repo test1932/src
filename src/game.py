@@ -9,9 +9,15 @@ from menus.characterMenu import characterMenu
 from menus.options.keyBindingOption import keyBindingOption
 from menus.pauseMenu import pauseMenu
 
+from model.battle import battle
 from players.humanPlayer import humanPlayer
 from players.networkPlayer import networkPlayer
 from players.abstractPlayer import abstractPlayer
+
+from characters.byakuren import byakuren
+from characters.koishi import koishi
+from characters.miko import miko
+from characters.yukari import yukari
 
 from graphics.progressBar import progressBar
 
@@ -22,9 +28,26 @@ class game:
     MENU = 0
     GAME = 1
     
-    def __init__(self, width = 1000, height = 600):
-        self.i = 0 # debugging
+    CHARACTERS = [
+        byakuren,
+        koishi,
+        miko,
+        yukari
+    ]
+    
+    isSetup = False
+    
+    @classmethod
+    def setup(cls):
+        isSetup = True
+        cls.setupCharacters()
         
+    @classmethod
+    def setupCharacters(cls):
+        for charClass in cls.CHARACTERS:
+            charClass.setup()
+    
+    def __init__(self, width = 1000, height = 600):
         self.WIDTH = width
         self.HEIGHT = height
         self.titleFont = pygame.font.Font(pygame.font.get_default_font(), 40)
@@ -32,6 +55,10 @@ class game:
         self.screen = pygame.display.set_mode([self.WIDTH,self.HEIGHT])
         self.state = game.MENU
         self.displayRange = [[0, 0], [self.WIDTH, self.HEIGHT]]
+        
+        # TODO thread this and add loading screen
+        if not game.isSetup:
+            game.setup()
         
         #game state
         self.players = [humanPlayer(self, 0), None]
@@ -60,15 +87,15 @@ class game:
         maxSwap = abstractPlayer.MAX_SWAP_VAL
         self.manabars = [
             progressBar(maxMana, maxMana, 50, 530, 300, 60, imagePathMana, True, 5), 
-            progressBar(maxMana, maxMana, 650, 530, 300, 60, imagePathMana, True, 5)
+            progressBar(maxMana, maxMana, 650, 530, 300, 60, imagePathMana, True, 5, flipped = True)
             ]
         self.healthbars = [
             progressBar(maxhealth, maxhealth, 50, 30, 350, 25, None),
-            progressBar(maxhealth, maxhealth, 600, 30, 350, 25, None)
+            progressBar(maxhealth, maxhealth, 600, 30, 350, 25, None, flipped = True)
         ]
         self.swapbars = [
             progressBar(maxSwap, maxSwap, 50, 60, 100, 10, None),
-            progressBar(maxSwap, maxSwap, 850, 60, 100, 10, None)
+            progressBar(maxSwap, maxSwap, 850, 60, 100, 10, None, flipped = True)
         ]
         
     def setupPlayers(self):
@@ -145,26 +172,59 @@ class game:
         return self.players
     
     def drawHighlights(self, i, x, y, yInc):
-        if type(self.currentMenu) == characterMenu:
-            if i == self.currentMenu.selectors[0]:
-                pygame.draw.line(self.screen, (255,0,0),\
-                                (x, y + yInc + 25), \
-                                (x + self.WIDTH // 16, y + yInc + 25), 3)
-            if i == self.currentMenu.selectors[1]:
-                pygame.draw.line(self.screen, (0,0,255), \
-                                (x + self.WIDTH // 16, y + yInc + 25), \
-                                (x + self.WIDTH // 8, y + yInc + 25), 3)
-        elif i == self.currentMenu.getPos():
+        if i == self.currentMenu.getPos():
             colour = (100,255,100) if self.currentMenu.getFocus() else (255,0,0)
             pygame.draw.line(self.screen, colour, (x, y + yInc + 25), (x + self.WIDTH // 8, y + yInc + 25), 3)
                 
         
     def displayMenu(self):
-        self.screen.blit(self.currentMenu.getBackground(),(0,0))
+        if self.currentMenu.getBackground() != None:
+            self.screen.blit(self.currentMenu.getBackground(),(0,0))
+        else:
+            self.screen.fill((255,255,255))
         x = self.WIDTH // 8
         y = self.HEIGHT // 8
+        if type(self.currentMenu) == characterMenu:
+            self.displayCharacterMenu(x, y)
+        else:
+            self.displayGenericMenu(x, y)
+            
+    def highlightCharacters(self, xbase, ybase):
+        pos1, pos2 = self.currentMenu.selectors
+        i1, j1 = pos1 % 3, pos1 // 3
+        i2, j2 = pos2 % 3, pos2 // 3
+        
+        pygame.draw.rect(self.screen, (255,0,0),\
+            (xbase + i1 * 100 - 2, ybase + j1 * 30 - 2, 96, 25), 3)
+        pygame.draw.rect(self.screen, (0,0,255),\
+            (xbase + i2 * 100 - 4, ybase + j2 * 30 - 4, 100, 29), 3)
+            
+    def displayCharacterMenu(self, x, y):
+        self.screen.blit(self.titleFont.render(
+                "Create the strongest duo!",
+                False,
+                (0,0,0)),
+            (self.WIDTH // 2 - 250, 50))
+        
+        x += self.WIDTH // 8
+        y += self.HEIGHT // 8
+        if self.currentMenu.getCurSelector() == 1:
+            x += self.WIDTH // 6
+        
+        for i,option in enumerate(self.currentMenu.getOptions()):
+            xI = i % 3
+            yI = i // 3
+            
+            yInc = yI * 30
+            xInc = xI * 100
+            self.screen.blit(self.baseFont.render(option.getName(), False, (0,0,0)),(x + xInc, y + yInc))
+            
+        self.highlightCharacters(x, y)
+        
+    def displayGenericMenu(self, x, y):
         self.screen.blit(self.bgRect, (x - 10,y - 20))
         self.screen.blit(self.titleFont.render(self.currentMenu.getName(),False,(0,0,0)), (x,y))
+        
         for i,option in enumerate(self.currentMenu.getOptions()):
             yInc = (i + 1) * 30 + self.HEIGHT // 8
             self.screen.blit(self.baseFont.render(option.getName(), False, (0,0,0)),(x, y + yInc))
@@ -229,8 +289,7 @@ class game:
         self.displayRange = [[max(fromX,0), max(fromY,0)], [min(toX,self.WIDTH), min(toY,self.HEIGHT)]]
     
     def displayGame(self):
-        # print(self.i % 1000)
-        # self.i += 1
+        
         self.setZoom()
         if self.multicastConnListen == None:
             self.displayBackground(self.currentBattle.getBackground())
@@ -242,10 +301,12 @@ class game:
                 self.sendNetworkDisplay()
         self.displayPlayers()
         self.displayProjectiles()
+        
         if DEBUG:
             for player in self.players:
                 for box in player.getHitbox():
                     pygame.draw.rect(self.screen, (255,255,255), box)
+                    
         self.displayBattleOverlay()
 
     def displayBattleOverlay(self):
@@ -254,6 +315,23 @@ class game:
             self.healthbars[i].getImage(self.screen)
             self.manabars[i].getImage(self.screen)
             self.swapbars[i].getImage(self.screen)
+        
+        if self.currentBattle.state == battle.PRE_BATTLE_DIALOGUE or\
+                self.currentBattle.state == battle.POST_BATTLE_DIALOGUE:
+            self.displayDialogue()
+        elif self.currentBattle.state == battle.STARTING:
+            self.displayCountdown()
+            
+    def displayCountdown(self):
+        self.screen.blit(self.titleFont.render(
+                str(self.currentBattle.introTimeRemaining), 
+                False, 
+                (100,0,0)), 
+            (self.WIDTH // 2, self.HEIGHT // 2)
+        )
+            
+    def displayDialogue(self):
+        pass # TODO
     
     def displayTimeRemaining(self):
         x = (self.WIDTH // 2) - 15
@@ -410,17 +488,8 @@ class game:
             self.setState(game.MENU)
             self.setCurrentMenu(self.pauseMenu)
             return
-        for player in self.players:
-            if not type(player) == humanPlayer:
-                continue
-            if event.type == pygame.KEYDOWN and event.key in player.mapping:
-                player.heldKeys.append(player.mapping[event.key])
-                self.sendKeyPress(player.mapping[event.key], 0)
-            if event.type == pygame.KEYUP and event.key in player.mapping:
-                player.heldKeys.remove(player.mapping[event.key])
-                if player.mapping[event.key] in player.ignoreKeys:
-                    player.ignoreKeys.remove(player.mapping[event.key])
-                self.sendKeyPress(player.mapping[event.key], 1)
+        
+        self.currentBattle.handleInput(event)
     
     def otherPlayer(self, player):
         if player == self.players[0]:
@@ -434,6 +503,8 @@ class game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+                if event.type not in [pygame.KEYDOWN, pygame.KEYUP]:
+                    continue
                 if self.state == game.MENU:
                     self.handleMenuInput(event)
                 elif self.state == game.GAME:

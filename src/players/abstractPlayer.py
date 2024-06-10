@@ -8,6 +8,9 @@ from pygame import Rect
 from physicalBody.attackProjectile import meleeProjectile, rangedProjectile
 
 class abstractPlayer(abstractPhysicalBody):
+    POSSESSOR = 0
+    SLAVE = 1
+    
     LEFT_DIR = 0
     RIGHT_DIR = 1
     
@@ -23,9 +26,10 @@ class abstractPlayer(abstractPhysicalBody):
     MELEE = 5
     WEAK = 6
     STRONG = 7
+    SWAP = 8
     
-    FORWARD = 8
-    BACK = 9
+    FORWARD = 9
+    BACK = 10
     
     actionNames = [
         "Right",
@@ -35,8 +39,17 @@ class abstractPlayer(abstractPhysicalBody):
         "Dash",
         "Melee",
         "Magic",
-        "Special"
+        "Special",
+        "Swap"
     ]
+    
+    NO_AIR_DASH = 0
+    FIRST_RIGHT_AIR_DASH = 1
+    FIRST_LEFT_AIR_DASH = 2
+    HAS_TURNED_LEFT = 3
+    HAS_TURNED_RIGHT = 4
+    FALLING = 5
+    
     
     #will have static list of projectile classes
     
@@ -47,7 +60,8 @@ class abstractPlayer(abstractPhysicalBody):
         self.animationNumber = abstractCharacter.IDLE
         self.animationFrame = 0
         self.timeSinceLastFrame = 0
-        self.character = None # character class for move set and skills
+        self.characters = [None, None] # character classes for move set and skills
+        self.curChar = 0
         
         self.health = 1000
         self.mana = 1000
@@ -56,6 +70,8 @@ class abstractPlayer(abstractPhysicalBody):
         self.blocking = False
         self.effects = []
         self.StunTime = 0
+        
+        self.turnedInAir = abstractPlayer.NO_AIR_DASH
         
         self.facingDirection = abstractPlayer.RIGHT_DIR
         self.characterIndex = None
@@ -68,10 +84,19 @@ class abstractPlayer(abstractPhysicalBody):
         self.__effectsLock = RLock()
 
         self.playerSpells = []
-        self.actionMapping = None
+        self.actionMappings = [None, None]
         
         self.meleeCounter = 0
         self.lastMeleeMade = 0 # time of last base melee attack
+        
+    def getGameObj(self):
+        return self.__gameObj
+    
+    def intro(self):
+        self.characters[0].setIntroAnim(self.characters[1])
+    
+    def outro(self, wasWin):
+        self.characters[0].setOutroAnim(wasWin)
         
     # override from abstract physical body
     def collides(self, other):
@@ -151,7 +176,8 @@ class abstractPlayer(abstractPhysicalBody):
         self.lockEffects()
         if self.StunTime > 0:
             self.StunTime -= timeDec
-        map(lambda x: x.decrementTime(timeDec), self.effects)
+        for effect in self.effects:
+            effect.decrementTime(timeDec)
         i = 0
         while i < len(self.effects):
             if self.effects[i].getRemainingTime() < 0:
@@ -202,6 +228,12 @@ class abstractPlayer(abstractPhysicalBody):
     def getCharacterIndex(self):
         return self.characterIndex
     
+    def getActionMapping(self):
+        return self.actionMappings[self.curChar]
+    
+    def getCurChar(self):
+        return self.curChar
+    
     def getAnimationNo(self):
         return self.animationNumber
     
@@ -232,10 +264,10 @@ class abstractPlayer(abstractPhysicalBody):
         if not isNetwork:
             self.handleUpDownAnimation()
         
-        image, self.animationNumber, self.animationFrame, width = self.character.getFrame(\
+        image, self.animationNumber, self.animationFrame, width = self.getCharacter().getFrame(\
             self.animationNumber, self.animationFrame,\
             flip = self.facingDirection == abstractPlayer.LEFT_DIR)
-        return image, self.character.baseWidth, width
+        return image, self.getCharacter().baseWidth, width
         
     def getOpponent(self):
         return self.__gameObj.otherPlayer(self)
@@ -277,40 +309,39 @@ class abstractPlayer(abstractPhysicalBody):
         assert val >= 0
         self.mana = max(0, self.mana - val)
         
-    def incrementSwapVal(self, val):
-        assert val >= 0
-        self.swapVal = min(abstractPlayer.MAX_SWAP_VAL, self.swapVal + val)
+    def incrementSwapVal(self, timeDiff):
+        self.swapVal = min(self.getCharacter().incrementSwapVal(self.swapVal, timeDiff), 
+            abstractPlayer.MAX_SWAP_VAL)
         
     def decrementSwapVal(self, val):
-        assert val >= 0
-        self.swapVal = max(0, self.swapVal - val)
+        self.swapVal = max(self.getCharacter().decrementSwapVal(self.swapVal, val), 0)
     
-    def setCharacter(self, character, i):
-        self.character = character(self.__gameObj)
+    def setCharacter(self, character, i, charsIndex):
+        self.characters[charsIndex] = character(self.__gameObj)
         self.characterIndex = i
         
-        self.actionMapping = {
-            str(sorted([abstractPlayer.FORWARD,abstractPlayer.MELEE])):self.character.forwardMelee,
-            str(sorted([abstractPlayer.BACK,abstractPlayer.MELEE])):self.character.backMelee,
-            str(sorted([abstractPlayer.DOWN,abstractPlayer.MELEE])):self.character.downMelee,
-            str(sorted([abstractPlayer.UP,abstractPlayer.MELEE])):self.character.upMelee,
-            str([abstractPlayer.MELEE]):self.character.melee,
+        self.actionMappings[charsIndex] = {
+            str(sorted([abstractPlayer.FORWARD,abstractPlayer.MELEE])):self.characters[charsIndex].forwardMelee,
+            str(sorted([abstractPlayer.BACK,abstractPlayer.MELEE])):self.characters[charsIndex].backMelee,
+            str(sorted([abstractPlayer.DOWN,abstractPlayer.MELEE])):self.characters[charsIndex].downMelee,
+            str(sorted([abstractPlayer.UP,abstractPlayer.MELEE])):self.characters[charsIndex].upMelee,
+            str([abstractPlayer.MELEE]):self.characters[charsIndex].melee,
             
-            str(sorted([abstractPlayer.FORWARD,abstractPlayer.WEAK])):self.character.forwardWeak,
-            str(sorted([abstractPlayer.BACK,abstractPlayer.WEAK])):self.character.backWeak,
-            str(sorted([abstractPlayer.DOWN,abstractPlayer.WEAK])):self.character.downWeak,
-            str(sorted([abstractPlayer.UP,abstractPlayer.WEAK])):self.character.upWeak,
-            str([abstractPlayer.WEAK]):self.character.weak,
+            str(sorted([abstractPlayer.FORWARD,abstractPlayer.WEAK])):self.characters[charsIndex].forwardWeak,
+            str(sorted([abstractPlayer.BACK,abstractPlayer.WEAK])):self.characters[charsIndex].backWeak,
+            str(sorted([abstractPlayer.DOWN,abstractPlayer.WEAK])):self.characters[charsIndex].downWeak,
+            str(sorted([abstractPlayer.UP,abstractPlayer.WEAK])):self.characters[charsIndex].upWeak,
+            str([abstractPlayer.WEAK]):self.characters[charsIndex].weak,
             
-            str(sorted([abstractPlayer.FORWARD,abstractPlayer.STRONG])):self.character.forwardStrong,
-            str(sorted([abstractPlayer.BACK,abstractPlayer.STRONG])):self.character.backStrong,
-            str(sorted([abstractPlayer.DOWN,abstractPlayer.STRONG])):self.character.downStrong,
-            str(sorted([abstractPlayer.UP,abstractPlayer.STRONG])):self.character.upStrong,
-            str([abstractPlayer.STRONG]):self.character.strong
+            str(sorted([abstractPlayer.FORWARD,abstractPlayer.STRONG])):self.characters[charsIndex].forwardStrong,
+            str(sorted([abstractPlayer.BACK,abstractPlayer.STRONG])):self.characters[charsIndex].backStrong,
+            str(sorted([abstractPlayer.DOWN,abstractPlayer.STRONG])):self.characters[charsIndex].downStrong,
+            str(sorted([abstractPlayer.UP,abstractPlayer.STRONG])):self.characters[charsIndex].upStrong,
+            str([abstractPlayer.STRONG]):self.characters[charsIndex].strong
         }
         
     def getCharacter(self):
-        return self.character
+        return self.characters[self.curChar]
         
     def lockSpellCards(self):
         self.__spellcardLock.acquire()
@@ -338,7 +369,7 @@ class abstractPlayer(abstractPhysicalBody):
         self.animationNumber = animationNo
         
     def getGravity(self):
-        return self.character.getGravity()
+        return self.getCharacter().getGravity()
     
     def isInAir(self):
         raise NotImplementedError("a")
@@ -358,12 +389,12 @@ class abstractPlayer(abstractPhysicalBody):
         self.__replaceDirections(recent)
         recent.sort()
             
-        if str(recent) not in self.actionMapping:
+        if str(recent) not in self.getActionMapping():
             return
         
         self.ignoreKeys = self.ignoreKeys.union(set(recent).intersection({abstractPlayer.MELEE, abstractPlayer.WEAK, abstractPlayer.STRONG}))
         try:
-            action = self.actionMapping[str(recent)]
+            action = self.getActionMapping()[str(recent)]
             actionThread = abstractSpellAction(self, self.__gameObj, action)
             actionThread.start()
         except NotImplementedError:
@@ -375,26 +406,49 @@ class abstractPlayer(abstractPhysicalBody):
         if self.isStun():
             return
         
-        if abstractPlayer.UP in set(self.heldKeys).difference(self.ignoreKeys)\
+        ofInterestKeys = set(self.heldKeys).difference(self.ignoreKeys)
+        
+        if abstractPlayer.SWAP in ofInterestKeys:
+            self.swap()
+            self.ignoreKeys.add(abstractPlayer.SWAP)
+            return
+        
+        self.handleVerticalMovement(ofInterestKeys)
+        self.handleHorizontalMovement()
+        self.handleActions()
+        
+    def handleVerticalMovement(self, ofInterestKeys):
+        if abstractPlayer.UP in ofInterestKeys\
                 and self.getYPosition() == self.__gameObj.HEIGHT // 2:
-            self.setYVelocity(-self.character.getJump())
+            self.setYVelocity(-self.getCharacter().getJump())
             self.setAnimation(abstractCharacter.UP_START_INIT)
             self.ignoreKeys.add(abstractPlayer.UP)
             
-        elif abstractPlayer.DOWN in set(self.heldKeys).difference(self.ignoreKeys)\
+        elif abstractPlayer.DOWN in ofInterestKeys\
                 and self.getYPosition() == self.__gameObj.HEIGHT // 2:
-            self.setYVelocity(self.character.getJump())
+            self.setYVelocity(self.getCharacter().getJump())
             self.setAnimation(abstractCharacter.DOWN_START_INIT)
             self.ignoreKeys.add(abstractPlayer.DOWN)
-        
-        self.handleHorizontalMovement()
-        self.handleActions()
+            
+        if self.getYPosition() != self.__gameObj.HEIGHT // 2 and self.animationNumber == abstractCharacter.IDLE:
+            if self.getYPosition() - (self.__gameObj.HEIGHT // 2) < -100:
+                self.setAnimation(abstractCharacter.DOWN_START_INIT)
+            elif self.getYPosition() - (self.__gameObj.HEIGHT // 2) > 100:
+                self.setAnimation(abstractCharacter.UP_START_INIT)
+            
 
     def handleDashBlock(self):
+        if (self.turnedInAir == abstractPlayer.HAS_TURNED_LEFT and abstractPlayer.RIGHT in self.heldKeys) or\
+                (self.turnedInAir == abstractPlayer.HAS_TURNED_RIGHT and abstractPlayer.LEFT in self.heldKeys) or\
+                (self.turnedInAir == abstractPlayer.FALLING):
+            self.turnedInAir = abstractPlayer.FALLING
+            self.dashing = False
+            return
+        
         if abstractPlayer.DASH not in self.heldKeys:
             self.blocking = False
             self.dashing = False
-            return False
+            return
         
         if abstractPlayer.RIGHT in self.heldKeys or abstractPlayer.LEFT in self.heldKeys:
             self.blocking = False
@@ -402,42 +456,53 @@ class abstractPlayer(abstractPhysicalBody):
         elif self.getYVelocity() == 0:
             self.blocking = True
             self.dashing = False
-            
+        
+        #velocity and animation
         if abstractPlayer.RIGHT in self.heldKeys:
-            self.setXVelocity(400)
+            if self.turnedInAir == abstractPlayer.NO_AIR_DASH:
+                self.turnedInAir = abstractPlayer.FIRST_RIGHT_AIR_DASH
+            if self.turnedInAir == abstractPlayer.FIRST_LEFT_AIR_DASH:
+                self.turnedInAir = abstractPlayer.HAS_TURNED_RIGHT
+            
             if not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashForwardAnims:
                 self.setAnimation(abstractCharacter.DASH_FORWARD_START)
+                self.getCharacter().dashForward(self)
             elif self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashBackAnims:
                 self.setAnimation(abstractCharacter.DASH_BACK_START)
+                self.getCharacter().dashBack(self)
                 
         elif abstractPlayer.LEFT in self.heldKeys:
-            self.setXVelocity(-400)
+            if self.turnedInAir == abstractPlayer.NO_AIR_DASH:
+                self.turnedInAir = abstractPlayer.FIRST_LEFT_AIR_DASH
+            if self.turnedInAir == abstractPlayer.FIRST_RIGHT_AIR_DASH:
+                self.turnedInAir = abstractPlayer.HAS_TURNED_LEFT
+            
             if self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashForwardAnims:
                 self.setAnimation(abstractCharacter.DASH_FORWARD_START)
+                self.getCharacter().dashForward(self)
             elif not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptDashBackAnims:
                 self.setAnimation(abstractCharacter.DASH_BACK_START)
+                self.getCharacter().dashBack(self)
                 
         else:
             if self.animationNumber in abstractCharacter.idleTransitions:
                 self.setAnimation(abstractCharacter.idleTransitions[self.animationNumber])
             self.setXVelocity(0)
-        return True
 
     def handleHorizontalMovement(self):
-        if self.handleDashBlock():
-            return
+        self.handleDashBlock()
         if abs(self.getYPosition() - (self.__gameObj.HEIGHT // 2)) > 20:
             return
         
         if abstractPlayer.RIGHT in self.heldKeys:
-            self.setXVelocity(300)
+            self.setXVelocity(200)
             if not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptForwardAnims:
                 self.setAnimation(abstractCharacter.FORWARD_START)
             elif self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptBackAnims:
                 self.setAnimation(abstractCharacter.BACK_START)
                 
         elif abstractPlayer.LEFT in self.heldKeys:
-            self.setXVelocity(-300)
+            self.setXVelocity(-200)
             if self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptForwardAnims:
                 self.setAnimation(abstractCharacter.FORWARD_START)
             elif not self.isFacingLeft() and self.animationNumber in abstractCharacter.interruptBackAnims:
@@ -482,3 +547,7 @@ class abstractPlayer(abstractPhysicalBody):
         self.lockSpellCards()
         self.playerSpells = []
         self.unlockSpellCards()
+        
+    def swap(self):
+        self.curChar = 1 if self.curChar == 0 else 0
+        self.decrementSwapVal(500)

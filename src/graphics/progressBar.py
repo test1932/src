@@ -1,7 +1,8 @@
 import pygame
 
 class progressBar:
-    def __init__(self, maxVal, initVal, x, y, width, height, imagePath = None, segmented = False, noSegments = 5) -> None:
+    def __init__(self, maxVal, initVal, x, y, width, height, imagePath = None, segmented = False, noSegments = 5, flipped = False) -> None:
+        self.flipped = flipped
         self.currentVal = initVal
         self.maxVal = maxVal
         self.x = x
@@ -23,7 +24,12 @@ class progressBar:
     
     def displayNonSegmentedNoImage(self, graphic):
         pygame.draw.rect(graphic, (255,255,255), (self.x,self.y,self.width, self.height))
-        pygame.draw.rect(graphic, (255, 0, 0), (2 + self.x ,2 + self.y, (self.currentVal * self.width / self.maxVal) - 4, self.height - 4))
+        if self.flipped:
+            pygame.draw.rect(graphic, (255, 0, 0), (2 + self.x + self.width - (self.currentVal * self.width / self.maxVal), \
+                2 + self.y, (self.currentVal * self.width / self.maxVal) - 4, self.height - 4))
+        else:
+            pygame.draw.rect(graphic, (255, 0, 0), (2 + self.x ,\
+                2 + self.y, (self.currentVal * self.width / self.maxVal) - 4, self.height - 4))
         
     def displaySegmentedImage(self, graphic, noFill, remaining, image):
         scaled = pygame.transform.scale(image, (self.width // self.noSegments, self.height))

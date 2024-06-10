@@ -5,7 +5,7 @@ from model.battle import battle
 
 class localOption(abstractOption):
     def __init__(self, gameObj, parentMenu) -> None:
-        super().__init__("Local Multiplayer", parentMenu)
+        super().__init__("VS PLAYER", parentMenu)
         self.__gameObj = gameObj
         
     def handler(self):
@@ -13,5 +13,8 @@ class localOption(abstractOption):
         characterSelectionMenu = characterMenu(self.getOwner(), self.__gameObj, 0)
         
         self.__gameObj.setCurrentMenu(characterSelectionMenu)
-        self.__gameObj.setBattle(battle(self.__gameObj, "assets/images/backgrounds/Simple Backgrounds/Bamboo Forest of the Lost.png",None))
+        self.__gameObj.setBattle(battle(
+            self.__gameObj, 
+            "assets/images/backgrounds/Simple Backgrounds/Bamboo Forest of the Lost.png",
+            None))
         characterSelectionMenu.runSelection()
